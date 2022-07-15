@@ -93,6 +93,7 @@ var LN = 'LN';
 var BTC = 'BTC';
 
 function processData(data) {
+  if (data.screenOpts) setScreenOptions(data.screenOpts);
   if (data.localeInfo) setLocaleInfo(data.localeInfo);
   if (data.locale) setLocale(data.locale);
   if (data.supportedCoins) setCoins(data.supportedCoins);
@@ -112,7 +113,9 @@ function processData(data) {
   if (data.cassettes) buildCassetteButtons(data.cassettes, NUMBER_OF_BUTTONS);
   if (data.readingBills) readingBills(data.readingBills);
   if (data.cryptoCode) translateCoin(data.cryptoCode);
-  if (data.tx && data.tx.cashInFee) setFixedFee(data.tx.cashInFee);
+  if (data.tx) {
+    if (data.tx.cashInFee) setFixedFee(data.tx.cashInFee);else if (data.tx.cashOutFee) setFixedFee(data.tx.cashOutFee);
+  }
   if (data.terms) setTermsScreen(data.terms);
   if (data.dispenseBatch) dispenseBatch(data.dispenseBatch);
   if (data.direction) setDirection(data.direction);
@@ -120,6 +123,7 @@ function processData(data) {
   if (data.hardLimit) setHardLimit(data.hardLimit);
   if (data.cryptomatModel) setCryptomatModel(data.cryptomatModel);
   if (data.areThereAvailablePromoCodes !== undefined) setAvailablePromoCodes(data.areThereAvailablePromoCodes);
+  if (data.allRates && data.ratesFiat) setRates(data.allRates, data.ratesFiat);
 
   if (data.tx && data.tx.discount) setCurrentDiscount(data.tx.discount);
   if (data.receiptStatus) setReceiptPrint(data.receiptStatus, null);
@@ -297,6 +301,9 @@ function processData(data) {
     case 'externalCompliance':
       clearTimeout(complianceTimeout);
       externalCompliance(data.externalComplianceUrl);
+      break;
+    case 'rates':
+      setState('rates');
       break;
     default:
       if (data.action) setState(window.snakecase(data.action));
@@ -842,6 +849,9 @@ $(document).ready(function () {
 
   setupButton('terms-ok', 'termsAccepted');
   setupButton('terms-ko', 'idle');
+
+  setupImmediateButton('rates-close', 'idle');
+  setupButton('rates-section-button', 'ratesScreen');
 
   setupButton('maintenance_restart', 'maintenanceRestart');
 
@@ -2035,5 +2045,24 @@ function setReceiptPrint(receiptStatus, smsReceiptStatus) {
 function externalCompliance(url) {
   qrize(url, $('#qr-code-external-validation'), cashDirection === 'cashIn' ? CASH_IN_QR_COLOR : CASH_OUT_QR_COLOR);
   return setScreen('external_compliance');
+}
+
+function setScreenOptions(opts) {
+  if (opts.rates) {
+    opts.rates.active ? $('#rates-section').show() : $('#rates-section').hide();
+  }
+}
+
+function setRates(allRates, fiat) {
+  var ratesTable = $('.rates-content');
+  var tableHeader = $('<div class="xs-margin-bottom">\n  <h4 class="js-i18n">Buy</h4>\n  <h4 class="js-i18n">Crypto</h4>\n  <h4 class="js-i18n">Sell</h4>\n</div>');
+  var coinEntries = [];
+
+  Object.keys(allRates).forEach(function (it) {
+    coinEntries.push($('<div class="xs-margin-bottom">\n    <p class="d2 js-i18n">' + allRates[it].cashIn + '</p>\n    <h4 class="js-i18n">' + it + '</h4>\n    <p class="d2 js-i18n">' + allRates[it].cashOut + '</p>\n  </div>'));
+  });
+
+  $('#rates-fiat-currency').text(fiat);
+  ratesTable.empty().append(tableHeader).append(coinEntries);
 }
 //# sourceMappingURL=app.js.map
