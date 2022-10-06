@@ -112,7 +112,9 @@ function processData(data) {
   if (data.cassettes) buildCassetteButtons(data.cassettes, NUMBER_OF_BUTTONS);
   if (data.readingBills) readingBills(data.readingBills);
   if (data.cryptoCode) translateCoin(data.cryptoCode);
-  if (data.tx && data.tx.cashInFee) setFixedFee(data.tx.cashInFee);
+  if (data.tx) {
+    if (data.tx.cashInFee) setFixedFee(data.tx.cashInFee);else if (data.tx.cashOutFee) setFixedFee(data.tx.cashOutFee);
+  }
   if (data.terms) setTermsScreen(data.terms);
   if (data.dispenseBatch) dispenseBatch(data.dispenseBatch);
   if (data.direction) setDirection(data.direction);
@@ -297,6 +299,10 @@ function processData(data) {
     case 'externalCompliance':
       clearTimeout(complianceTimeout);
       externalCompliance(data.externalComplianceUrl);
+      break;
+    case 'suspiciousAddress':
+      suspiciousAddress(data.blacklistMessage);
+      setState('suspicious_address');
       break;
     default:
       if (data.action) setState(window.snakecase(data.action));
@@ -2035,5 +2041,13 @@ function setReceiptPrint(receiptStatus, smsReceiptStatus) {
 function externalCompliance(url) {
   qrize(url, $('#qr-code-external-validation'), cashDirection === 'cashIn' ? CASH_IN_QR_COLOR : CASH_OUT_QR_COLOR);
   return setScreen('external_compliance');
+}
+
+function suspiciousAddress(blacklistMessage) {
+  if (blacklistMessage) {
+    $('#suspicious-address-message').html(blacklistMessage);
+  } else {
+    $('#suspicious-address-message').html(translate("This address may be associated with a deceptive offer or a prohibited group. Please make sure you\'re using an address from your own wallet."));
+  }
 }
 //# sourceMappingURL=app.js.map
