@@ -121,7 +121,7 @@ function processData (data) {
   if (data.hardLimit) setHardLimit(data.hardLimit)
   if (data.cryptomatModel) setCryptomatModel(data.cryptomatModel)
   if (data.areThereAvailablePromoCodes !== undefined) setAvailablePromoCodes(data.areThereAvailablePromoCodes)
-  if (data.allRates && data.ratesFiat && data.localeInfo) setRates(data.allRates, data.ratesFiat, data.localeInfo)
+  if (data.allRates && data.ratesFiat) setRates(data.allRates, data.ratesFiat)
 
   if (data.tx && data.tx.discount) setCurrentDiscount(data.tx.discount)
   if (data.receiptStatus) setReceiptPrint(data.receiptStatus, null)
@@ -2106,7 +2106,7 @@ function thousandSeparator (number, country, minimumFractionDigits) {
   return numberFormatter.format(number)
 }
 
-function setRates (allRates, fiat, locales) {
+function setRates (allRates, fiat) {
   const ratesTable = $('.rates-content')
   const tableHeader = $(`<div class="xs-margin-bottom">
   <h4 class="js-i18n">Buy</h4>
@@ -2121,9 +2121,9 @@ function setRates (allRates, fiat, locales) {
     const biggestDecimalPlaces = Math.max(cashIn.dp(), cashOut.dp())
 
     coinEntries.push($(`<div class="xs-margin-bottom">
-    <p class="d2 js-i18n">${thousandSeparator(cashIn.toFixed(2), locales.country, biggestDecimalPlaces)}</p>
+    <p class="d2 js-i18n">${thousandSeparator(BN(allRates[it].cashIn).toFixed(2), localeCode)}</p>
     <h4 class="js-i18n">${it}</h4>
-    <p class="d2 js-i18n">${thousandSeparator(cashOut.toFixed(2), locales.country, biggestDecimalPlaces)}</p>
+    <p class="d2 js-i18n">${thousandSeparator(BN(allRates[it].cashOut).toFixed(2), localeCode)}</p>
   </div>`))
   })
 
