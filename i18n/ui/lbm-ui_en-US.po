@@ -1098,3 +1098,11 @@ msgstr "Dash"
 msgid "Bitcoin Cash"
 msgstr "Bitcoin Cash"
 
+#: On screen: coins
+msgid "Monero"
+msgstr "Monero"
+
+#: On screen: coins
+msgid "USDT"
+msgstr "USDT"
+
