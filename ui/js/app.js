@@ -123,7 +123,7 @@ function processData(data) {
   if (data.hardLimit) setHardLimit(data.hardLimit);
   if (data.cryptomatModel) setCryptomatModel(data.cryptomatModel);
   if (data.areThereAvailablePromoCodes !== undefined) setAvailablePromoCodes(data.areThereAvailablePromoCodes);
-  if (data.allRates && data.ratesFiat && data.localeInfo) setRates(data.allRates, data.ratesFiat, data.localeInfo);
+  if (data.allRates && data.ratesFiat) setRates(data.allRates, data.ratesFiat);
 
   if (data.tx && data.tx.discount) setCurrentDiscount(data.tx.discount);
   if (data.receiptStatus) setReceiptPrint(data.receiptStatus, null);
@@ -2056,9 +2056,9 @@ function thousandSeparator(number, country, minimumFractionDigits) {
   return numberFormatter.format(number);
 }
 
-function setRates(allRates, fiat, locales) {
+function setRates(allRates, fiat) {
   var ratesTable = $('.rates-content');
-  var tableHeader = $('<div class="xs-margin-bottom">\n  <h4 class="js-i18n">Buy</h4>\n  <h4 class="js-i18n">Crypto</h4>\n  <h4 class="js-i18n">Sell</h4>\n</div>');
+  var tableHeader = $('<div class="xs-margin-bottom">\n  <h4 class="js-i18n">' + translate('Buy') + '</h4>\n  <h4 class="js-i18n">' + translate('Crypto') + '</h4>\n  <h4 class="js-i18n">' + translate('Sell') + '</h4>\n</div>');
   var coinEntries = [];
 
   Object.keys(allRates).forEach(function (it) {
@@ -2066,7 +2066,7 @@ function setRates(allRates, fiat, locales) {
     var cashOut = BN(allRates[it].cashOut);
     var biggestDecimalPlaces = Math.max(cashIn.dp(), cashOut.dp());
 
-    coinEntries.push($('<div class="xs-margin-bottom">\n    <p class="d2 js-i18n">' + thousandSeparator(cashIn.toFixed(2), locales.country, biggestDecimalPlaces) + '</p>\n    <h4 class="js-i18n">' + it + '</h4>\n    <p class="d2 js-i18n">' + thousandSeparator(cashOut.toFixed(2), locales.country, biggestDecimalPlaces) + '</p>\n  </div>'));
+    coinEntries.push($('<div class="xs-margin-bottom">\n    <p class="d2 js-i18n">' + thousandSeparator(BN(allRates[it].cashIn).toFixed(2), localeCode) + '</p>\n    <h4 class="js-i18n">' + it + '</h4>\n    <p class="d2 js-i18n">' + thousandSeparator(BN(allRates[it].cashOut).toFixed(2), localeCode) + '</p>\n  </div>'));
   });
 
   $('#rates-fiat-currency').text(fiat);
