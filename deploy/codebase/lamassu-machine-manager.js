@@ -101,6 +101,15 @@ function installDeviceConfig (cb) {
     const currentDeviceConfig = require(currentDeviceConfigPath)
     const newDeviceConfig = require(newDeviceConfigPath)
 
+    if (currentDeviceConfig.frontFacingCamera) {
+      newDeviceConfig.frontFacingCamera = currentDeviceConfig.frontFacingCamera
+    }
+    if (currentDeviceConfig.scanner) {
+      newDeviceConfig.scanner = currentDeviceConfig.scanner
+    }
+    if (currentDeviceConfig.machineLocation) {
+      newDeviceConfig.machineLocation = currentDeviceConfig.machineLocation
+    }
     if (currentDeviceConfig.cryptomatModel) {
       newDeviceConfig.cryptomatModel = currentDeviceConfig.cryptomatModel
     }
