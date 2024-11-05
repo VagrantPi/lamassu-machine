@@ -27,15 +27,18 @@ const udevPath = `${packagePath}/udev/aaeon`
 const TIMEOUT = 600000;
 const applicationParentFolder = hardwareCode === 'aaeon' ? '/opt/apps/machine' : '/opt'
 
+const LOG = msg => report(null, msg, () => {})
+const ERROR = err => report(err, null, () => {})
+
 function command(cmd, cb) {
-  console.log(`Running command \`${cmd}\``)
+  LOG(`Running command \`${cmd}\``)
   cp.exec(cmd, {timeout: TIMEOUT}, function(err) {
     cb(err);
   });
 }
 
 function updateUdev (cb) {
-  console.log("Updating udev rules")
+  LOG("Updating udev rules")
   if (hardwareCode !== 'aaeon') return cb()
   return async.series([
     async.apply(command, `cp ${udevPath}/* /etc/udev/rules.d/`),
@@ -48,7 +51,7 @@ function updateUdev (cb) {
 }
 
 function updateSupervisor (cb) {
-  console.log("Updating Supervisor services")
+  LOG("Updating Supervisor services")
   if (hardwareCode === 'aaeon') return cb()
 
   const isLMX = () =>
@@ -64,13 +67,50 @@ function updateSupervisor (cb) {
     }
   }
 
+  const getServices = () => {
+    const extractServices = stdout => {
+      const services = stdout
+        .split('\n')
+        .flatMap(line => {
+          const service = line.split(' ', 1)?.[0]
+          return (!service || service === 'lamassu-watchdog') ? [] : [service]
+        })
+        .join(' ')
+      /*
+       * NOTE: Keep old behavior in case we don't get the expected output:
+       * update and restart all services. result:finished won't work.
+       */
+      return services.length > 0 ? services : 'all'
+    }
+
+    try {
+      const stdout = cp.execFileSync("supervisorctl", ["status"], { encoding: 'utf8', timeout: 10000 })
+      return extractServices(stdout)
+    } catch (err) {
+      return err.status === 3 ?
+        extractServices(err.stdout) :
+        'all' /* NOTE: see note above */
+    }
+  }
+
   const osuser = getOSUser()
+  const services = getServices()
 
   async.series([
     async.apply(command, `cp ${supervisorPath}/* /etc/supervisor/conf.d/`),
     async.apply(command, `sed -i 's|^user=.*\$|user=${osuser}|;' /etc/supervisor/conf.d/lamassu-browser.conf || true`),
-    async.apply(command, 'supervisorctl update'),
-    async.apply(command, 'supervisorctl restart all'),
+    async.apply(command, `supervisorctl update ${services}`),
+    async.apply(command, `supervisorctl restart ${services}`),
+  ], err => {
+    if (err) throw err;
+    cb()
+  })
+}
+
+function restartWatchdogService (cb) {
+  async.series([
+    async.apply(command, 'supervisorctl update lamassu-watchdog'),
+    async.apply(command, 'supervisorctl restart lamassu-watchdog'),
   ], err => {
     if (err) throw err;
     cb()
@@ -78,7 +118,7 @@ function updateSupervisor (cb) {
 }
 
 function updateAcpChromium (cb) {
-  console.log("Updating ACP Chromium")
+  LOG("Updating ACP Chromium")
   if (hardwareCode !== 'aaeon') return cb()
   return async.series([
     async.apply(command, `cp ${path}/sencha-chrome.conf /home/iva/.config/upstart/`),
@@ -90,7 +130,7 @@ function updateAcpChromium (cb) {
 }
 
 function installDeviceConfig (cb) {
-  console.log("Installing `device_config.json`")
+  LOG("Installing `device_config.json`")
   try {
     const currentDeviceConfigPath = `${applicationParentFolder}/lamassu-machine/device_config.json`
     const newDeviceConfigPath = `${path}/device_config.json`
@@ -166,12 +206,18 @@ const upgrade = () => {
     async.apply(updateSupervisor),
     async.apply(updateUdev),
     async.apply(updateAcpChromium),
-    async.apply(report, null, 'finished.')
+    async.apply(report, null, 'finished.'),
+    async.apply(restartWatchdogService),
   ]
 
   return new Promise((resolve, reject) => {
     async.series(commands, function(err) {
-      return err ? reject(err) : resolve();
+      if (err) {
+        ERROR(err)
+        return reject(err)
+      } else {
+        return resolve()
+      }
     });
   })
 }
