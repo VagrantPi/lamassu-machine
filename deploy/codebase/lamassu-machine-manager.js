@@ -104,6 +104,16 @@ function updateSupervisor (cb) {
   })
 }
 
+function restartWatchdogService (cb) {
+  async.series([
+    async.apply(command, 'supervisorctl update lamassu-watchdog'),
+    async.apply(command, 'supervisorctl restart lamassu-watchdog'),
+  ], err => {
+    if (err) throw err;
+    cb()
+  })
+}
+
 function updateAcpChromium (cb) {
   console.log("Updating ACP Chromium")
   if (hardwareCode !== 'aaeon') return cb()
@@ -193,7 +203,8 @@ const upgrade = () => {
     async.apply(updateSupervisor),
     async.apply(updateUdev),
     async.apply(updateAcpChromium),
-    async.apply(report, null, 'finished.')
+    async.apply(report, null, 'finished.'),
+    async.apply(restartWatchdogService),
   ]
 
   return new Promise((resolve, reject) => {
