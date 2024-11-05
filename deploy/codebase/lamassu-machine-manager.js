@@ -27,15 +27,18 @@ const udevPath = `${packagePath}/udev/aaeon`
 const TIMEOUT = 600000;
 const applicationParentFolder = hardwareCode === 'aaeon' ? '/opt/apps/machine' : '/opt'
 
+const LOG = msg => report(null, msg, () => {})
+const ERROR = err => report(err, null, () => {})
+
 function command(cmd, cb) {
-  console.log(`Running command \`${cmd}\``)
+  LOG(`Running command \`${cmd}\``)
   cp.exec(cmd, {timeout: TIMEOUT}, function(err) {
     cb(err);
   });
 }
 
 function updateUdev (cb) {
-  console.log("Updating udev rules")
+  LOG("Updating udev rules")
   if (hardwareCode !== 'aaeon') return cb()
   return async.series([
     async.apply(command, `cp ${udevPath}/* /etc/udev/rules.d/`),
@@ -48,7 +51,7 @@ function updateUdev (cb) {
 }
 
 function updateSupervisor (cb) {
-  console.log("Updating Supervisor services")
+  LOG("Updating Supervisor services")
   if (hardwareCode === 'aaeon') return cb()
 
   const isLMX = () =>
@@ -115,7 +118,7 @@ function restartWatchdogService (cb) {
 }
 
 function updateAcpChromium (cb) {
-  console.log("Updating ACP Chromium")
+  LOG("Updating ACP Chromium")
   if (hardwareCode !== 'aaeon') return cb()
   return async.series([
     async.apply(command, `cp ${path}/sencha-chrome.conf /home/iva/.config/upstart/`),
@@ -127,7 +130,7 @@ function updateAcpChromium (cb) {
 }
 
 function installDeviceConfig (cb) {
-  console.log("Installing `device_config.json`")
+  LOG("Installing `device_config.json`")
   try {
     const currentDeviceConfigPath = `${applicationParentFolder}/lamassu-machine/device_config.json`
     const newDeviceConfigPath = `${path}/device_config.json`
@@ -209,7 +212,12 @@ const upgrade = () => {
 
   return new Promise((resolve, reject) => {
     async.series(commands, function(err) {
-      return err ? reject(err) : resolve();
+      if (err) {
+        ERROR(err)
+        return reject(err)
+      } else {
+        return resolve()
+      }
     });
   })
 }
