@@ -64,13 +64,40 @@ function updateSupervisor (cb) {
     }
   }
 
+  const getServices = () => {
+    const extractServices = stdout => {
+      const services = stdout
+        .split('\n')
+        .flatMap(line => {
+          const service = line.split(' ', 1)?.[0]
+          return (!service || service === 'lamassu-watchdog') ? [] : [service]
+        })
+        .join(' ')
+      /*
+       * NOTE: Keep old behavior in case we don't get the expected output:
+       * update and restart all services. result:finished won't work.
+       */
+      return services.length > 0 ? services : 'all'
+    }
+
+    try {
+      const stdout = cp.execFileSync("supervisorctl", ["status"], { encoding: 'utf8', timeout: 10000 })
+      return extractServices(stdout)
+    } catch (err) {
+      return err.status === 3 ?
+        extractServices(err.stdout) :
+        'all' /* NOTE: see note above */
+    }
+  }
+
   const osuser = getOSUser()
+  const services = getServices()
 
   async.series([
     async.apply(command, `cp ${supervisorPath}/* /etc/supervisor/conf.d/`),
     async.apply(command, `sed -i 's|^user=.*\$|user=${osuser}|;' /etc/supervisor/conf.d/lamassu-browser.conf || true`),
-    async.apply(command, 'supervisorctl update'),
-    async.apply(command, 'supervisorctl restart all'),
+    async.apply(command, `supervisorctl update ${services}`),
+    async.apply(command, `supervisorctl restart ${services}`),
   ], err => {
     if (err) throw err;
     cb()
