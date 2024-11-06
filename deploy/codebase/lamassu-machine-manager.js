@@ -39,10 +39,15 @@ function command(cmd, cb) {
   });
 }
 
-const isLMX = () =>
-  fs.readFileSync('/etc/os-release', { encoding: 'utf8' })
-    .split('\n')
-    .includes('IMAGE_ID=lamassu-machine-xubuntu')
+const isLMX = () => {
+  try {
+    return fs.readFileSync('/etc/os-release', { encoding: 'utf8' })
+      .split('\n')
+      .includes('IMAGE_ID=lamassu-machine-xubuntu')
+  } catch (err) {
+    return false
+  }
+}
 
 const getOSUser = () => {
   try {
