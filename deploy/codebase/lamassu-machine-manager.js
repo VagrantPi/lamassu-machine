@@ -14,7 +14,7 @@ const packagePath = `${basePath}/package/subpackage`
 
 const machineWithMultipleCodes = ['upboard', 'up4000', 'coincloud', 'generalbytes', 'genmega']
 
-const path = machineWithMultipleCodes.includes(hardwareCode) ?
+const hardwarePath = machineWithMultipleCodes.includes(hardwareCode) ?
   `${packagePath}/hardware/${hardwareCode}/${machineCode}` :
   `${packagePath}/hardware/${hardwareCode}`
 
@@ -121,8 +121,8 @@ function updateAcpChromium (cb) {
   LOG("Updating ACP Chromium")
   if (hardwareCode !== 'aaeon') return cb()
   return async.series([
-    async.apply(command, `cp ${path}/sencha-chrome.conf /home/iva/.config/upstart/`),
-    async.apply(command, `cp ${path}/start-chrome /home/iva/`),
+    async.apply(command, `cp ${hardwarePath}/sencha-chrome.conf /home/iva/.config/upstart/`),
+    async.apply(command, `cp ${hardwarePath}/start-chrome /home/iva/`),
   ], function(err) {
     if (err) throw err;
     cb()
@@ -133,7 +133,7 @@ function installDeviceConfig (cb) {
   LOG("Installing `device_config.json`")
   try {
     const currentDeviceConfigPath = `${applicationParentFolder}/lamassu-machine/device_config.json`
-    const newDeviceConfigPath = `${path}/device_config.json`
+    const newDeviceConfigPath = `${hardwarePath}/device_config.json`
 
     // Updates don't necessarily need to carry a device_config.json file
     if (!fs.existsSync(newDeviceConfigPath)) return cb()
