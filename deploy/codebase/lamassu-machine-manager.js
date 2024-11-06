@@ -1,8 +1,10 @@
 'use strict';
 
-const fs = require('fs');
-const async = require('./async');
 const cp = require('child_process');
+const fs = require('fs');
+const { mkdir, writeFile } = require('fs/promises');
+const path = require('path');
+const async = require('./async');
 const report = require('./report').report;
 
 const hardwareCode = process.argv[2];
@@ -14,7 +16,7 @@ const packagePath = `${basePath}/package/subpackage`
 
 const machineWithMultipleCodes = ['upboard', 'up4000', 'coincloud', 'generalbytes', 'genmega']
 
-const path = machineWithMultipleCodes.includes(hardwareCode) ?
+const hardwarePath = machineWithMultipleCodes.includes(hardwareCode) ?
   `${packagePath}/hardware/${hardwareCode}/${machineCode}` :
   `${packagePath}/hardware/${hardwareCode}`
 
@@ -37,6 +39,24 @@ function command(cmd, cb) {
   });
 }
 
+const isLMX = () => {
+  try {
+    return fs.readFileSync('/etc/os-release', { encoding: 'utf8' })
+      .split('\n')
+      .includes('IMAGE_ID=lamassu-machine-xubuntu')
+  } catch (err) {
+    return false
+  }
+}
+
+const getOSUser = () => {
+  try {
+    return (!machineWithMultipleCodes.includes(hardwareCode) || isLMX()) ? 'lamassu' : 'ubilinux'
+  } catch (err) {
+    return 'ubilinux'
+  }
+}
+
 function updateUdev (cb) {
   LOG("Updating udev rules")
   if (hardwareCode !== 'aaeon') return cb()
@@ -53,19 +73,6 @@ function updateUdev (cb) {
 function updateSupervisor (cb) {
   LOG("Updating Supervisor services")
   if (hardwareCode === 'aaeon') return cb()
-
-  const isLMX = () =>
-    fs.readFileSync('/etc/os-release', { encoding: 'utf8' })
-      .split('\n')
-      .includes('IMAGE_ID=lamassu-machine-xubuntu')
-
-  const getOSUser = () => {
-    try {
-      return (!machineWithMultipleCodes.includes(hardwareCode) || isLMX()) ? 'lamassu' : 'ubilinux'
-    } catch (err) {
-      return 'ubilinux'
-    }
-  }
 
   const getServices = () => {
     const extractServices = stdout => {
@@ -107,6 +114,22 @@ function updateSupervisor (cb) {
   })
 }
 
+const updateSystemd = cb => {
+  LOG("Make Supervisor start after X")
+  const override = dm => `[Unit]\nAfter=${dm}.service\nWants=${dm}.service\n`
+  const SUPERVISOR_OVERRIDE = "/etc/systemd/system/supervisor.service.d/override.conf"
+  return mkdir(path.dirname(SUPERVISOR_OVERRIDE), { recursive: true })
+    .then(() => isLMX() ? 'lightdm' : 'sddm') // Assume Ubilinux if not l-m-x
+    .then(dm => writeFile(SUPERVISOR_OVERRIDE, override(dm), { mode: 0o600, flush: true }))
+    .then(() => new Promise((resolve, reject) =>
+      cp.execFile('systemctl', ['daemon-reload'], { timeout: 10000 },
+        (error, _stdout, _stderr) => error ? reject(error) : resolve()
+      )
+    ))
+    .then(() => cb())
+    .catch(err => cb(err))
+}
+
 function restartWatchdogService (cb) {
   async.series([
     async.apply(command, 'supervisorctl update lamassu-watchdog'),
@@ -121,8 +144,8 @@ function updateAcpChromium (cb) {
   LOG("Updating ACP Chromium")
   if (hardwareCode !== 'aaeon') return cb()
   return async.series([
-    async.apply(command, `cp ${path}/sencha-chrome.conf /home/iva/.config/upstart/`),
-    async.apply(command, `cp ${path}/start-chrome /home/iva/`),
+    async.apply(command, `cp ${hardwarePath}/sencha-chrome.conf /home/iva/.config/upstart/`),
+    async.apply(command, `cp ${hardwarePath}/start-chrome /home/iva/`),
   ], function(err) {
     if (err) throw err;
     cb()
@@ -133,7 +156,7 @@ function installDeviceConfig (cb) {
   LOG("Installing `device_config.json`")
   try {
     const currentDeviceConfigPath = `${applicationParentFolder}/lamassu-machine/device_config.json`
-    const newDeviceConfigPath = `${path}/device_config.json`
+    const newDeviceConfigPath = `${hardwarePath}/device_config.json`
 
     // Updates don't necessarily need to carry a device_config.json file
     if (!fs.existsSync(newDeviceConfigPath)) return cb()
@@ -204,6 +227,7 @@ const upgrade = () => {
     async.apply(command, `mv ${applicationParentFolder}/lamassu-machine/camera-streamer/camera-streamer.${arch} ${applicationParentFolder}/lamassu-machine/camera-streamer/camera-streamer`),
     async.apply(installDeviceConfig),
     async.apply(updateSupervisor),
+    async.apply(updateSystemd),
     async.apply(updateUdev),
     async.apply(updateAcpChromium),
     async.apply(report, null, 'finished.'),
