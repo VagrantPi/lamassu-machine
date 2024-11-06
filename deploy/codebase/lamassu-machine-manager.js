@@ -37,6 +37,19 @@ function command(cmd, cb) {
   });
 }
 
+const isLMX = () =>
+  fs.readFileSync('/etc/os-release', { encoding: 'utf8' })
+    .split('\n')
+    .includes('IMAGE_ID=lamassu-machine-xubuntu')
+
+const getOSUser = () => {
+  try {
+    return (!machineWithMultipleCodes.includes(hardwareCode) || isLMX()) ? 'lamassu' : 'ubilinux'
+  } catch (err) {
+    return 'ubilinux'
+  }
+}
+
 function updateUdev (cb) {
   LOG("Updating udev rules")
   if (hardwareCode !== 'aaeon') return cb()
@@ -53,19 +66,6 @@ function updateUdev (cb) {
 function updateSupervisor (cb) {
   LOG("Updating Supervisor services")
   if (hardwareCode === 'aaeon') return cb()
-
-  const isLMX = () =>
-    fs.readFileSync('/etc/os-release', { encoding: 'utf8' })
-      .split('\n')
-      .includes('IMAGE_ID=lamassu-machine-xubuntu')
-
-  const getOSUser = () => {
-    try {
-      return (!machineWithMultipleCodes.includes(hardwareCode) || isLMX()) ? 'lamassu' : 'ubilinux'
-    } catch (err) {
-      return 'ubilinux'
-    }
-  }
 
   const getServices = () => {
     const extractServices = stdout => {
