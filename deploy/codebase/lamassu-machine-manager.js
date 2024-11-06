@@ -1,8 +1,10 @@
 'use strict';
 
-const fs = require('fs');
-const async = require('./async');
 const cp = require('child_process');
+const fs = require('fs');
+const { mkdir, writeFile } = require('fs/promises');
+const path = require('path');
+const async = require('./async');
 const report = require('./report').report;
 
 const hardwareCode = process.argv[2];
@@ -107,6 +109,22 @@ function updateSupervisor (cb) {
   })
 }
 
+const updateSystemd = cb => {
+  LOG("Make Supervisor start after X")
+  const override = dm => `[Unit]\nAfter=${dm}.service\nWants=${dm}.service\n`
+  const SUPERVISOR_OVERRIDE = "/etc/systemd/system/supervisor.service.d/override.conf"
+  return mkdir(path.dirname(SUPERVISOR_OVERRIDE), { recursive: true })
+    .then(() => isLMX() ? 'lightdm' : 'sddm') // Assume Ubilinux if not l-m-x
+    .then(dm => writeFile(SUPERVISOR_OVERRIDE, override(dm), { mode: 0o600, flush: true }))
+    .then(() => new Promise((resolve, reject) =>
+      cp.execFile('systemctl', ['daemon-reload'], { timeout: 10000 },
+        (error, _stdout, _stderr) => error ? reject(error) : resolve()
+      )
+    ))
+    .then(() => cb())
+    .catch(err => cb(err))
+}
+
 function restartWatchdogService (cb) {
   async.series([
     async.apply(command, 'supervisorctl update lamassu-watchdog'),
@@ -204,6 +222,7 @@ const upgrade = () => {
     async.apply(command, `mv ${applicationParentFolder}/lamassu-machine/camera-streamer/camera-streamer.${arch} ${applicationParentFolder}/lamassu-machine/camera-streamer/camera-streamer`),
     async.apply(installDeviceConfig),
     async.apply(updateSupervisor),
+    async.apply(updateSystemd),
     async.apply(updateUdev),
     async.apply(updateAcpChromium),
     async.apply(report, null, 'finished.'),
