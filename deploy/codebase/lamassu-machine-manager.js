@@ -1,8 +1,10 @@
 'use strict';
 
-const fs = require('fs');
-const async = require('./async');
 const cp = require('child_process');
+const fs = require('fs');
+const { mkdir, writeFile } = require('fs/promises');
+const path = require('path');
+const async = require('./async');
 const report = require('./report').report;
 
 const hardwareCode = process.argv[2];
@@ -14,7 +16,7 @@ const packagePath = `${basePath}/package/subpackage`
 
 const machineWithMultipleCodes = ['upboard', 'up4000', 'coincloud', 'generalbytes', 'genmega']
 
-const path = machineWithMultipleCodes.includes(hardwareCode) ?
+const hardwarePath = machineWithMultipleCodes.includes(hardwareCode) ?
   `${packagePath}/hardware/${hardwareCode}/${machineCode}` :
   `${packagePath}/hardware/${hardwareCode}`
 
@@ -27,15 +29,36 @@ const udevPath = `${packagePath}/udev/aaeon`
 const TIMEOUT = 600000;
 const applicationParentFolder = hardwareCode === 'aaeon' ? '/opt/apps/machine' : '/opt'
 
+const LOG = msg => report(null, msg, () => {})
+const ERROR = err => report(err, null, () => {})
+
 function command(cmd, cb) {
-  console.log(`Running command \`${cmd}\``)
+  LOG(`Running command \`${cmd}\``)
   cp.exec(cmd, {timeout: TIMEOUT}, function(err) {
     cb(err);
   });
 }
 
+const isLMX = () => {
+  try {
+    return fs.readFileSync('/etc/os-release', { encoding: 'utf8' })
+      .split('\n')
+      .includes('IMAGE_ID=lamassu-machine-xubuntu')
+  } catch (err) {
+    return false
+  }
+}
+
+const getOSUser = () => {
+  try {
+    return (!machineWithMultipleCodes.includes(hardwareCode) || isLMX()) ? 'lamassu' : 'ubilinux'
+  } catch (err) {
+    return 'ubilinux'
+  }
+}
+
 function updateUdev (cb) {
-  console.log("Updating udev rules")
+  LOG("Updating udev rules")
   if (hardwareCode !== 'aaeon') return cb()
   return async.series([
     async.apply(command, `cp ${udevPath}/* /etc/udev/rules.d/`),
@@ -48,29 +71,69 @@ function updateUdev (cb) {
 }
 
 function updateSupervisor (cb) {
-  console.log("Updating Supervisor services")
+  LOG("Updating Supervisor services")
   if (hardwareCode === 'aaeon') return cb()
 
-  const isLMX = () =>
-    fs.readFileSync('/etc/os-release', { encoding: 'utf8' })
-      .split('\n')
-      .includes('IMAGE_ID=lamassu-machine-xubuntu')
+  const getServices = () => {
+    const extractServices = stdout => {
+      const services = stdout
+        .split('\n')
+        .flatMap(line => {
+          const service = line.split(' ', 1)?.[0]
+          return (!service || service === 'lamassu-watchdog') ? [] : [service]
+        })
+        .join(' ')
+      /*
+       * NOTE: Keep old behavior in case we don't get the expected output:
+       * update and restart all services. result:finished won't work.
+       */
+      return services.length > 0 ? services : 'all'
+    }
 
-  const getOSUser = () => {
     try {
-      return (!machineWithMultipleCodes.includes(hardwareCode) || isLMX()) ? 'lamassu' : 'ubilinux'
+      const stdout = cp.execFileSync("supervisorctl", ["status"], { encoding: 'utf8', timeout: 10000 })
+      return extractServices(stdout)
     } catch (err) {
-      return 'ubilinux'
+      return err.status === 3 ?
+        extractServices(err.stdout) :
+        'all' /* NOTE: see note above */
     }
   }
 
   const osuser = getOSUser()
+  const services = getServices()
 
   async.series([
     async.apply(command, `cp ${supervisorPath}/* /etc/supervisor/conf.d/`),
     async.apply(command, `sed -i 's|^user=.*\$|user=${osuser}|;' /etc/supervisor/conf.d/lamassu-browser.conf || true`),
-    async.apply(command, 'supervisorctl update'),
-    async.apply(command, 'supervisorctl restart all'),
+    async.apply(command, `supervisorctl update ${services}`),
+    async.apply(command, `supervisorctl restart ${services}`),
+  ], err => {
+    if (err) throw err;
+    cb()
+  })
+}
+
+const updateSystemd = cb => {
+  LOG("Make Supervisor start after X")
+  const override = dm => `[Unit]\nAfter=${dm}.service\nWants=${dm}.service\n`
+  const SUPERVISOR_OVERRIDE = "/etc/systemd/system/supervisor.service.d/override.conf"
+  return mkdir(path.dirname(SUPERVISOR_OVERRIDE), { recursive: true })
+    .then(() => isLMX() ? 'lightdm' : 'sddm') // Assume Ubilinux if not l-m-x
+    .then(dm => writeFile(SUPERVISOR_OVERRIDE, override(dm), { mode: 0o600, flush: true }))
+    .then(() => new Promise((resolve, reject) =>
+      cp.execFile('systemctl', ['daemon-reload'], { timeout: 10000 },
+        (error, _stdout, _stderr) => error ? reject(error) : resolve()
+      )
+    ))
+    .then(() => cb())
+    .catch(err => cb(err))
+}
+
+function restartWatchdogService (cb) {
+  async.series([
+    async.apply(command, 'supervisorctl update lamassu-watchdog'),
+    async.apply(command, 'supervisorctl restart lamassu-watchdog'),
   ], err => {
     if (err) throw err;
     cb()
@@ -78,11 +141,11 @@ function updateSupervisor (cb) {
 }
 
 function updateAcpChromium (cb) {
-  console.log("Updating ACP Chromium")
+  LOG("Updating ACP Chromium")
   if (hardwareCode !== 'aaeon') return cb()
   return async.series([
-    async.apply(command, `cp ${path}/sencha-chrome.conf /home/iva/.config/upstart/`),
-    async.apply(command, `cp ${path}/start-chrome /home/iva/`),
+    async.apply(command, `cp ${hardwarePath}/sencha-chrome.conf /home/iva/.config/upstart/`),
+    async.apply(command, `cp ${hardwarePath}/start-chrome /home/iva/`),
   ], function(err) {
     if (err) throw err;
     cb()
@@ -90,10 +153,10 @@ function updateAcpChromium (cb) {
 }
 
 function installDeviceConfig (cb) {
-  console.log("Installing `device_config.json`")
+  LOG("Installing `device_config.json`")
   try {
     const currentDeviceConfigPath = `${applicationParentFolder}/lamassu-machine/device_config.json`
-    const newDeviceConfigPath = `${path}/device_config.json`
+    const newDeviceConfigPath = `${hardwarePath}/device_config.json`
 
     // Updates don't necessarily need to carry a device_config.json file
     if (!fs.existsSync(newDeviceConfigPath)) return cb()
@@ -101,6 +164,15 @@ function installDeviceConfig (cb) {
     const currentDeviceConfig = require(currentDeviceConfigPath)
     const newDeviceConfig = require(newDeviceConfigPath)
 
+    if (currentDeviceConfig.frontFacingCamera) {
+      newDeviceConfig.frontFacingCamera = currentDeviceConfig.frontFacingCamera
+    }
+    if (currentDeviceConfig.scanner) {
+      newDeviceConfig.scanner = currentDeviceConfig.scanner
+    }
+    if (currentDeviceConfig.machineLocation) {
+      newDeviceConfig.machineLocation = currentDeviceConfig.machineLocation
+    }
     if (currentDeviceConfig.cryptomatModel) {
       newDeviceConfig.cryptomatModel = currentDeviceConfig.cryptomatModel
     }
@@ -155,14 +227,21 @@ const upgrade = () => {
     async.apply(command, `mv ${applicationParentFolder}/lamassu-machine/camera-streamer/camera-streamer.${arch} ${applicationParentFolder}/lamassu-machine/camera-streamer/camera-streamer`),
     async.apply(installDeviceConfig),
     async.apply(updateSupervisor),
+    async.apply(updateSystemd),
     async.apply(updateUdev),
     async.apply(updateAcpChromium),
-    async.apply(report, null, 'finished.')
+    async.apply(report, null, 'finished.'),
+    async.apply(restartWatchdogService),
   ]
 
   return new Promise((resolve, reject) => {
     async.series(commands, function(err) {
-      return err ? reject(err) : resolve();
+      if (err) {
+        ERROR(err)
+        return reject(err)
+      } else {
+        return resolve()
+      }
     });
   })
 }
