@@ -140,6 +140,17 @@ function restartWatchdogService (cb) {
   })
 }
 
+function updateGSR50 (cb) {
+  LOG("Updating GSR50")
+  if (machineCode !== 'aveiro') return cb()
+  return async.series([
+    async.apply(command, `cp ${applicationParentFolder}/lamassu-machine/lib/gsr50/binaries/* /opt/FujitsuGSR50/`),
+  ], function(err) {
+    if (err) throw err;
+    cb()
+  });
+}
+
 function updateAcpChromium (cb) {
   LOG("Updating ACP Chromium")
   if (hardwareCode !== 'aaeon') return cb()
@@ -182,10 +193,7 @@ function installDeviceConfig (cb) {
       newDeviceConfig.billDispenser.cassettes = currentDeviceConfig.billDispenser.cassettes
     }
     if (currentDeviceConfig.billValidator) {
-      newDeviceConfig.billValidator.deviceType = currentDeviceConfig.billValidator.deviceType
-      if (currentDeviceConfig.billValidator.rs232) {
-        newDeviceConfig.billValidator.rs232.device = currentDeviceConfig.billValidator.rs232.device
-      }
+      newDeviceConfig.billValidator = currentDeviceConfig.billValidator
     }
     if (currentDeviceConfig.kioskPrinter) {
       newDeviceConfig.kioskPrinter.model = currentDeviceConfig.kioskPrinter.model
@@ -229,6 +237,7 @@ const upgrade = () => {
     async.apply(updateSupervisor),
     async.apply(updateSystemd),
     async.apply(updateUdev),
+    async.apply(updateGSR50),
     async.apply(updateAcpChromium),
     async.apply(report, null, 'finished.'),
     async.apply(restartWatchdogService),
