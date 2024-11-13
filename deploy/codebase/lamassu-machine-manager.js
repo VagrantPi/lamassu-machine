@@ -103,12 +103,20 @@ function updateSupervisor (cb) {
   const osuser = getOSUser()
   const services = getServices()
 
-  async.series([
+  const commands = [
     async.apply(command, `cp ${supervisorPath}/* /etc/supervisor/conf.d/`),
-    async.apply(command, `sed -i 's|^user=.*\$|user=${osuser}|;' /etc/supervisor/conf.d/lamassu-browser.conf || true`),
-    async.apply(command, `supervisorctl update ${services}`),
-    async.apply(command, `supervisorctl restart ${services}`),
-  ], err => {
+    async.apply(command, `sed -i 's|^user=.*\$|user=${osuser}|;' /etc/supervisor/conf.d/lamassu-browser.conf || true`)
+  ]
+
+  if (machineCode == 'aveiro') {
+    LOG("Updating GSR50")
+    commands.push(async.apply(command, `cp ${applicationParentFolder}/lamassu-machine/lib/gsr50/binaries/* /opt/FujitsuGSR50/`))
+  }
+  
+  commands.push(async.apply(command, `supervisorctl update ${services}`))
+  commands.push(async.apply(command, `supervisorctl restart ${services}`))
+  
+  async.series(commands, err => {
     if (err) throw err;
     cb()
   })
@@ -138,17 +146,6 @@ function restartWatchdogService (cb) {
     if (err) throw err;
     cb()
   })
-}
-
-function updateGSR50 (cb) {
-  LOG("Updating GSR50")
-  if (machineCode !== 'aveiro') return cb()
-  return async.series([
-    async.apply(command, `cp ${applicationParentFolder}/lamassu-machine/lib/gsr50/binaries/* /opt/FujitsuGSR50/`),
-  ], function(err) {
-    if (err) throw err;
-    cb()
-  });
 }
 
 function updateAcpChromium (cb) {
@@ -237,7 +234,6 @@ const upgrade = () => {
     async.apply(updateSupervisor),
     async.apply(updateSystemd),
     async.apply(updateUdev),
-    async.apply(updateGSR50),
     async.apply(updateAcpChromium),
     async.apply(report, null, 'finished.'),
     async.apply(restartWatchdogService),
