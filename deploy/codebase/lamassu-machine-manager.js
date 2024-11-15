@@ -108,14 +108,17 @@ function updateSupervisor (cb) {
     async.apply(command, `sed -i 's|^user=.*\$|user=${osuser}|;' /etc/supervisor/conf.d/lamassu-browser.conf || true`)
   ]
 
+  commands.push(async.apply(command, `supervisorctl update ${services}`))
+  commands.push(async.apply(command, `supervisorctl stop ${services}`))
+
   if (machineCode == 'aveiro') {
     LOG("Updating GSR50")
     commands.push(async.apply(command, `cp ${applicationParentFolder}/lamassu-machine/lib/gsr50/binaries/* /opt/FujitsuGSR50/`))
+    commands.push(async.apply(command, `chmod +x /opt/FujitsuGSR50/FujitsuGSR50`))
   }
-  
-  commands.push(async.apply(command, `supervisorctl update ${services}`))
+
   commands.push(async.apply(command, `supervisorctl restart ${services}`))
-  
+
   async.series(commands, err => {
     if (err) throw err;
     cb()
