@@ -1291,6 +1291,9 @@ footer {
     height: 10vh;
     width: 10vh;
     line-height: 10vh;
+    @media (max-height: 600px) {
+      font-size: 5vh
+    }
   }
   .space {
     width: 71vh;
