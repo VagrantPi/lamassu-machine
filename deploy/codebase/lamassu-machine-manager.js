@@ -103,12 +103,23 @@ function updateSupervisor (cb) {
   const osuser = getOSUser()
   const services = getServices()
 
-  async.series([
+  const commands = [
     async.apply(command, `cp ${supervisorPath}/* /etc/supervisor/conf.d/`),
-    async.apply(command, `sed -i 's|^user=.*\$|user=${osuser}|;' /etc/supervisor/conf.d/lamassu-browser.conf || true`),
-    async.apply(command, `supervisorctl update ${services}`),
-    async.apply(command, `supervisorctl restart ${services}`),
-  ], err => {
+    async.apply(command, `sed -i 's|^user=.*\$|user=${osuser}|;' /etc/supervisor/conf.d/lamassu-browser.conf || true`)
+  ]
+
+  commands.push(async.apply(command, `supervisorctl update ${services}`))
+  commands.push(async.apply(command, `supervisorctl stop ${services}`))
+
+  if (machineCode == 'aveiro') {
+    LOG("Updating GSR50")
+    commands.push(async.apply(command, `cp ${applicationParentFolder}/lamassu-machine/lib/gsr50/binaries/* /opt/FujitsuGSR50/`))
+    commands.push(async.apply(command, `chmod +x /opt/FujitsuGSR50/FujitsuGSR50`))
+  }
+
+  commands.push(async.apply(command, `supervisorctl restart ${services}`))
+
+  async.series(commands, err => {
     if (err) throw err;
     cb()
   })
@@ -182,10 +193,7 @@ function installDeviceConfig (cb) {
       newDeviceConfig.billDispenser.cassettes = currentDeviceConfig.billDispenser.cassettes
     }
     if (currentDeviceConfig.billValidator) {
-      newDeviceConfig.billValidator.deviceType = currentDeviceConfig.billValidator.deviceType
-      if (currentDeviceConfig.billValidator.rs232) {
-        newDeviceConfig.billValidator.rs232.device = currentDeviceConfig.billValidator.rs232.device
-      }
+      newDeviceConfig.billValidator = currentDeviceConfig.billValidator
     }
     if (currentDeviceConfig.kioskPrinter) {
       newDeviceConfig.kioskPrinter.model = currentDeviceConfig.kioskPrinter.model
