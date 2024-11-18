@@ -86,7 +86,7 @@ declare -A boards_and_models=(
   ["up4000"]="sintra gaia tejo aveiro"
   ["coincloud"]="jcm-ipro-rc mei-bnr mei-scr"
   ["generalbytes"]="batm3 batm7in"
-  ["genmega"]="gemini gmuk1 gmuk2"
+  ["genmega"]="gemini gmuk1 gmuk2 wallkiosk"
 )
 
 # Loop through each board and its models
