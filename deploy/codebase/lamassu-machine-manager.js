@@ -105,6 +105,7 @@ function updateSupervisor (cb) {
 
   const commands = [
     async.apply(command, `cp ${supervisorPath}/* /etc/supervisor/conf.d/`),
+    async.apply(command, `rm -f /etc/supervisor/conf.d/calibrate-screen.conf`),
     async.apply(command, `sed -i 's|^user=.*\$|user=${osuser}|;' /etc/supervisor/conf.d/lamassu-browser.conf || true`)
   ]
 
