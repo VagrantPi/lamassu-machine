@@ -112,8 +112,8 @@ function updateSupervisor (cb) {
   commands.push(async.apply(command, `supervisorctl update ${services}`))
   commands.push(async.apply(command, `supervisorctl stop ${services}`))
 
-  if (machineCode == 'aveiro') {
-    LOG("Updating GSR50")
+  if (machineCode === 'aveiro') {
+    commands.push(async.apply(command, `supervisorctl stop lamassu-gsr50-devstart lamassu-gsr50`))
     commands.push(async.apply(command, `cp ${applicationParentFolder}/lamassu-machine/lib/gsr50/binaries/* /opt/FujitsuGSR50/`))
     commands.push(async.apply(command, `chmod +x /opt/FujitsuGSR50/FujitsuGSR50`))
   }
