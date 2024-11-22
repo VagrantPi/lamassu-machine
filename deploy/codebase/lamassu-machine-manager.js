@@ -144,7 +144,7 @@ const updateSystemd = cb => {
 
 function restartWatchdogService (cb) {
   async.series([
-    async.apply(command, 'supervisorctl update lamassu-watchdog'),
+    async.apply(command, 'supervisorctl update'),
     async.apply(command, 'supervisorctl restart lamassu-watchdog'),
   ], err => {
     if (err) throw err;
