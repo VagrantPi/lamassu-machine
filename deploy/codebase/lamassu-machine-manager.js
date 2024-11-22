@@ -80,14 +80,14 @@ function updateSupervisor (cb) {
         .split('\n')
         .flatMap(line => {
           const service = line.split(' ', 1)?.[0]
-          return (!service || service === 'lamassu-watchdog') ? [] : [service]
+          return service ? [service] : []
         })
-        .join(' ')
+        .filter(service => service !== 'lamassu-watchdog')
       /*
        * NOTE: Keep old behavior in case we don't get the expected output:
        * update and restart all services. result:finished won't work.
        */
-      return services.length > 0 ? services : 'all'
+      return services.length > 0 ? services : ['all']
     }
 
     try {
@@ -96,29 +96,30 @@ function updateSupervisor (cb) {
     } catch (err) {
       return err.status === 3 ?
         extractServices(err.stdout) :
-        'all' /* NOTE: see note above */
+        ['all'] /* NOTE: see note above */
     }
   }
 
   const osuser = getOSUser()
   const services = getServices()
+  const allServices = services.join(' ')
+  const servicesNoCalibrateScreen = services.filter(service => service !== 'calibrate-screen').join(' ')
 
   const commands = [
     async.apply(command, `cp ${supervisorPath}/* /etc/supervisor/conf.d/`),
+    async.apply(command, `sed -i 's|^user=.*\$|user=${osuser}|;' /etc/supervisor/conf.d/lamassu-browser.conf || true`),
     async.apply(command, `rm -f /etc/supervisor/conf.d/calibrate-screen.conf`),
-    async.apply(command, `sed -i 's|^user=.*\$|user=${osuser}|;' /etc/supervisor/conf.d/lamassu-browser.conf || true`)
+    async.apply(command, `supervisorctl update ${allServices}`),
+    async.apply(command, `supervisorctl stop ${servicesNoCalibrateScreen}`),
   ]
 
-  commands.push(async.apply(command, `supervisorctl update ${services}`))
-  commands.push(async.apply(command, `supervisorctl stop ${services}`))
-
-  if (machineCode == 'aveiro') {
-    LOG("Updating GSR50")
+  if (machineCode === 'aveiro') {
+    commands.push(async.apply(command, `supervisorctl stop lamassu-gsr50-devstart lamassu-gsr50`))
     commands.push(async.apply(command, `cp ${applicationParentFolder}/lamassu-machine/lib/gsr50/binaries/* /opt/FujitsuGSR50/`))
     commands.push(async.apply(command, `chmod +x /opt/FujitsuGSR50/FujitsuGSR50`))
   }
 
-  commands.push(async.apply(command, `supervisorctl restart ${services}`))
+  commands.push(async.apply(command, `supervisorctl restart ${servicesNoCalibrateScreen}`))
 
   async.series(commands, err => {
     if (err) throw err;
@@ -144,7 +145,7 @@ const updateSystemd = cb => {
 
 function restartWatchdogService (cb) {
   async.series([
-    async.apply(command, 'supervisorctl update lamassu-watchdog'),
+    async.apply(command, 'supervisorctl update'),
     async.apply(command, 'supervisorctl restart lamassu-watchdog'),
   ], err => {
     if (err) throw err;
