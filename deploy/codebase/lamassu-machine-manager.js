@@ -106,11 +106,10 @@ function updateSupervisor (cb) {
   const commands = [
     async.apply(command, `cp ${supervisorPath}/* /etc/supervisor/conf.d/`),
     async.apply(command, `rm -f /etc/supervisor/conf.d/calibrate-screen.conf`),
+    async.apply(command, `supervisorctl update ${services}`),
+    async.apply(command, `supervisorctl stop ${services}`),
     async.apply(command, `sed -i 's|^user=.*\$|user=${osuser}|;' /etc/supervisor/conf.d/lamassu-browser.conf || true`)
   ]
-
-  commands.push(async.apply(command, `supervisorctl update ${services}`))
-  commands.push(async.apply(command, `supervisorctl stop ${services}`))
 
   if (machineCode === 'aveiro') {
     commands.push(async.apply(command, `supervisorctl stop lamassu-gsr50-devstart lamassu-gsr50`))
