@@ -34,7 +34,11 @@ const ERROR = err => report(err, null, () => {})
 
 function command(cmd, cb) {
   LOG(`Running command \`${cmd}\``)
-  cp.exec(cmd, {timeout: TIMEOUT}, function(err) {
+  cp.exec(cmd, {timeout: TIMEOUT}, function(err, stdout, stderr) {
+    if (err) {
+      err.stdout = stdout
+      err.stderr = stderr
+    }
     cb(err);
   });
 }
