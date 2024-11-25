@@ -143,6 +143,19 @@ const updateSystemd = cb => {
     .catch(err => cb(err))
 }
 
+const disableSSH = cb => {
+  LOG("Disable SSH and close port 22")
+  return async.series([
+    async.apply(command, 'systemctl stop ssh'),
+    async.apply(command, 'systemctl disable ssh'),
+    async.apply(command, 'ufw --force reset'),
+    async.apply(command, 'ufw enable'),
+  ], err => {
+    if (err) throw err;
+    cb()
+  })
+}
+
 function restartWatchdogService (cb) {
   async.series([
     async.apply(command, 'supervisorctl update'),
@@ -238,6 +251,7 @@ const upgrade = () => {
     async.apply(installDeviceConfig),
     async.apply(updateSupervisor),
     async.apply(updateSystemd),
+    async.apply(disableSSH),
     async.apply(updateUdev),
     async.apply(updateAcpChromium),
     async.apply(report, null, 'finished.'),
