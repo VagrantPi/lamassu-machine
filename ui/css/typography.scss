@@ -15,6 +15,9 @@
   @include Heading;
   font-size: 12vh;
   line-height: 0.92;
+  @media (max-height: 600px) {
+    font-size: 13vh
+  }
   @media (orientation: portrait) {
     font-size: 12vw;
   }
@@ -24,6 +27,9 @@
   @include Heading;
   font-size: 8vh;
   line-height: 0.88;
+  @media (max-height: 600px) {
+    font-size: 9vh
+  }
   @media (orientation: portrait) {
     font-size: 8vw;
   }
@@ -33,6 +39,9 @@
   @include Heading;
   font-size: 6vh;
   line-height: 0.83;
+  @media (max-height: 600px) {
+    font-size: 7vh
+  }
   @media (orientation: portrait) {
     font-size: 6vw;
   }
@@ -42,6 +51,9 @@
   @include Heading;
   font-size: 3vh;
   line-height: 1.67;
+  @media (max-height: 600px) {
+    font-size: 4vh
+  }
   @media (orientation: portrait) {
     font-size: 3vw;
   }
@@ -51,6 +63,9 @@
   @include Heading;
   font-size: 5vh;
   line-height: 1.2;
+  @media (max-height: 600px) {
+    font-size: 6vh
+  }
   @media (orientation: portrait) {
     font-size: 5vw;
   }
@@ -68,6 +83,9 @@
   font-weight: 700;
   font-size: 5vh;
   line-height: 1.2;
+  @media (max-height: 600px) {
+    font-size: 6vh
+  }
   @media (orientation: portrait) {
     font-size: 5vw;
   }
@@ -78,6 +96,9 @@
   font-weight: 700;
   font-size: 3vh;
   line-height: 0.8;
+  @media (max-height: 600px) {
+    font-size: 4vh
+  }
   @media (orientation: portrait) {
     font-size: 3vw;
   }
@@ -88,6 +109,9 @@
   font-weight: 500;
   font-size: 4vh;
   line-height: 1.25;
+  @media (max-height: 600px) {
+    font-size: 5vh
+  }
   @media (orientation: portrait) {
     font-size: 4vw;
   }
@@ -98,6 +122,9 @@
   font-weight: 500;
   font-size: 3vh;
   line-height: 1.33;
+  @media (max-height: 600px) {
+    font-size: 4vh
+  }
   @media (orientation: portrait) {
     font-size: 3vw;
   }
@@ -107,6 +134,9 @@
   font-family: BPmono;
   font-size: 4vh;
   line-height: 1;
+  @media (max-height: 600px) {
+    font-size: 5vh
+  }
   @media (orientation: portrait) {
     font-size: 4vw;
   }
@@ -116,6 +146,9 @@
   font-family: BPmono;
   font-size: 3vh;
   line-height: 1;
+  @media (max-height: 600px) {
+    font-size: 4vh
+  }
   @media (orientation: portrait) {
     font-size: 3vw;
   }
