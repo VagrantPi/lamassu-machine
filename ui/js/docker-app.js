@@ -95,6 +95,7 @@ var LN = 'LN';
 var BTC = 'BTC';
 
 function processData(data) {
+  if (data.screenOpts) setScreenOptions(data.screenOpts);
   if (data.localeInfo) setLocaleInfo(data.localeInfo);
   if (data.locale) setLocale(data.locale);
   if (data.supportedCoins) setCoins(data.supportedCoins);
@@ -124,6 +125,7 @@ function processData(data) {
   if (data.hardLimit) setHardLimit(data.hardLimit);
   if (data.cryptomatModel) setCryptomatModel(data.cryptomatModel);
   if (data.areThereAvailablePromoCodes !== undefined) setAvailablePromoCodes(data.areThereAvailablePromoCodes);
+  if (data.allRates && data.ratesFiat) setRates(data.allRates, data.ratesFiat);
 
   if (data.tx && data.tx.discount) setCurrentDiscount(data.tx.discount);
   if (data.receiptStatus) setReceiptPrint(data.receiptStatus, null);
@@ -302,6 +304,13 @@ function processData(data) {
     case 'externalCompliance':
       clearTimeout(complianceTimeout);
       externalCompliance(data.externalComplianceUrl);
+      break;
+    case 'suspiciousAddress':
+      suspiciousAddress(data.blacklistMessage);
+      setState('suspicious_address');
+      break;
+    case 'rates':
+      setState('rates');
       break;
     default:
       if (data.action) setState(window.snakecase(data.action));
@@ -843,6 +852,9 @@ $(document).ready(function () {
 
   setupButton('terms-ok', 'termsAccepted');
   setupButton('terms-ko', 'idle');
+
+  setupImmediateButton('rates-close', 'idle');
+  setupButton('rates-section-button', 'ratesScreen');
 
   setupButton('maintenance_restart', 'maintenanceRestart');
 
@@ -2100,5 +2112,39 @@ function setAutomaticPrint(automaticPrint) {
     $('#print-receipt-cash-out-button').show();
     $('#print-receipt-cash-in-fail-button').show();
   }
+}
+
+function suspiciousAddress(blacklistMessage) {
+  if (blacklistMessage) {
+    $('#suspicious-address-message').html(blacklistMessage);
+  } else {
+    $('#suspicious-address-message').html(translate("This address may be associated with a deceptive offer or a prohibited group. Please make sure you\'re using an address from your own wallet."));
+  }
+}
+
+function setScreenOptions(opts) {
+  opts.rates && opts.rates.active ? $('#rates-section').show() : $('#rates-section').hide();
+}
+
+function thousandSeparator(number, country, minimumFractionDigits) {
+  var numberFormatter = Intl.NumberFormat(country, { minimumFractionDigits: minimumFractionDigits });
+  return numberFormatter.format(number);
+}
+
+function setRates(allRates, fiat) {
+  var ratesTable = $('.rates-content');
+  var tableHeader = $('<div class="xs-margin-bottom">\n  <h4 class="js-i18n">' + translate('Buy') + '</h4>\n  <h4 class="js-i18n">' + translate('Crypto') + '</h4>\n  <h4 class="js-i18n">' + translate('Sell') + '</h4>\n</div>');
+  var coinEntries = [];
+
+  Object.keys(allRates).forEach(function (it) {
+    var cashIn = BN(allRates[it].cashIn);
+    var cashOut = BN(allRates[it].cashOut);
+    var biggestDecimalPlaces = Math.max(cashIn.dp(), cashOut.dp());
+
+    coinEntries.push($('<div class="xs-margin-bottom">\n    <p class="d2 js-i18n">' + thousandSeparator(BN(allRates[it].cashIn).toFixed(2), localeCode) + '</p>\n    <h4 class="js-i18n">' + it + '</h4>\n    <p class="d2 js-i18n">' + thousandSeparator(BN(allRates[it].cashOut).toFixed(2), localeCode) + '</p>\n  </div>'));
+  });
+
+  $('#rates-fiat-currency').text(fiat);
+  ratesTable.empty().append(tableHeader).append(coinEntries);
 }
 //# sourceMappingURL=app.js.map

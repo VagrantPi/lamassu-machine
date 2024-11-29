@@ -739,6 +739,10 @@ footer {
   width: 30vh;
 }
 
+.rates-section {
+  margin-left: 2em;
+}
+
 #change-language-section #language-dropdown-toggle {
   align-items: center;
 }
@@ -1443,6 +1447,10 @@ footer {
   .crypto-address, .crypto-address-no-br{
     display: flex;
     justify-content: flex-end;
+  }
+  .rates-section {
+    margin-left: 0; 
+    margin-right: 2em;
   }
 }
 

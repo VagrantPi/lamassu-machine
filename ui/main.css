@@ -2232,6 +2232,10 @@ footer {
   width: 30vh;
 }
 
+.rates-section {
+  margin-left: 2em;
+}
+
 #change-language-section #language-dropdown-toggle {
   -webkit-box-align: center;
   -webkit-align-items: center;
@@ -2978,6 +2982,10 @@ footer {
   -webkit-box-pack: end;
   -webkit-justify-content: flex-end;
           justify-content: flex-end;
+}
+.i18n-rtl .rates-section {
+  margin-left: 0;
+  margin-right: 2em;
 }
 
 .send-only-total {
