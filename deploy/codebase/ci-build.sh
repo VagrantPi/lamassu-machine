@@ -12,6 +12,7 @@ setup_board_model() {
   supervisor_export_dir="$EXPORT_DIR/supervisor/$board/$model"
 
   # Create necessary directories
+  mkdir -p "$board_export_dir"
   mkdir -p "$supervisor_export_dir"
 
   # Copy supervisor configuration files for the board and model
