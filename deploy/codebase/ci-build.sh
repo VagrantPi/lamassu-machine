@@ -63,7 +63,8 @@ cp -a $MACHINE_DIR/exec $TARGET_MACHINE_DIR
 cp $MACHINE_DIR/bin/lamassu-machine $TARGET_MACHINE_DIR/bin
 cp $MACHINE_DIR/bin/cam.js $TARGET_MACHINE_DIR/bin
 cp -r $MACHINE_DIR/ui $TARGET_MACHINE_DIR
-$MACHINE_DIR/node_modules/.bin/copy-node-modules $MACHINE_DIR $TARGET_MACHINE_DIR
+cp -r $MACHINE_DIR/node_modules $TARGET_MACHINE_DIR
+npm i --omit dev --prefix $TARGET_MACHINE_DIR
 
 # Fonts setup
 mkdir -p $TARGET_MACHINE_DIR/ui/css/fonts
