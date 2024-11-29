@@ -232,7 +232,6 @@ const upgrade = () => {
     async.apply(command, `tar zxf ${basePath}/package/subpackage.tgz -C ${basePath}/package/`),
     async.apply(command, `rm -rf ${applicationParentFolder}/lamassu-machine/node_modules/`),
     async.apply(command, `cp -PR ${basePath}/package/subpackage/lamassu-machine ${applicationParentFolder}`),
-    async.apply(command, `cp -PR ${basePath}/package/subpackage/hardware/${hardwareCode}/node_modules ${applicationParentFolder}/lamassu-machine/`),
     async.apply(command, `mv ${applicationParentFolder}/lamassu-machine/verify/verify.${arch} ${applicationParentFolder}/lamassu-machine/verify/verify`),
     async.apply(command, `mv ${applicationParentFolder}/lamassu-machine/camera-streamer/camera-streamer.${arch} ${applicationParentFolder}/lamassu-machine/camera-streamer/camera-streamer`),
     async.apply(installDeviceConfig),
