@@ -109,7 +109,10 @@ function processData (data) {
   if (data.cassettes) buildCassetteButtons(data.cassettes, NUMBER_OF_BUTTONS)
   if (data.readingBills) readingBills(data.readingBills)
   if (data.cryptoCode) translateCoin(data.cryptoCode)
-  if (data.tx && data.tx.cashInFee) setFixedFee(data.tx.cashInFee)
+  if (data.tx) {
+    if (data.tx.cashInFee) setFixedFee(data.tx.cashInFee)
+    else if (data.tx.cashOutFee) setFixedFee(data.tx.cashOutFee)
+  }
   if (data.terms) setTermsScreen(data.terms)
   if (data.dispenseBatch) dispenseBatch(data.dispenseBatch)
   if (data.direction) setDirection(data.direction)
