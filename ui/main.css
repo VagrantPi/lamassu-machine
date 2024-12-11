@@ -200,6 +200,11 @@ h1, .h1 {
 .i28n-he h1, .i28n-he .h1 {
   font-family: "Rubik", "Mont Heavy", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Kufi Arabic";
 }
+@media (max-height: 600px) {
+  h1, .h1 {
+    font-size: 13vh;
+  }
+}
 @media (orientation: portrait) {
   h1, .h1 {
     font-size: 12vw;
@@ -215,6 +220,11 @@ h2, .h2 {
 }
 .i28n-he h2, .i28n-he .h2 {
   font-family: "Rubik", "Mont Heavy", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Kufi Arabic";
+}
+@media (max-height: 600px) {
+  h2, .h2 {
+    font-size: 9vh;
+  }
 }
 @media (orientation: portrait) {
   h2, .h2 {
@@ -232,6 +242,11 @@ h3, .h3 {
 .i28n-he h3, .i28n-he .h3 {
   font-family: "Rubik", "Mont Heavy", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Kufi Arabic";
 }
+@media (max-height: 600px) {
+  h3, .h3 {
+    font-size: 7vh;
+  }
+}
 @media (orientation: portrait) {
   h3, .h3 {
     font-size: 6vw;
@@ -247,6 +262,11 @@ h4, .h4 {
 }
 .i28n-he h4, .i28n-he .h4 {
   font-family: "Rubik", "Mont Heavy", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Kufi Arabic";
+}
+@media (max-height: 600px) {
+  h4, .h4 {
+    font-size: 4vh;
+  }
 }
 @media (orientation: portrait) {
   h4, .h4 {
@@ -264,6 +284,11 @@ h5, .h5 {
 .i28n-he h5, .i28n-he .h5 {
   font-family: "Rubik", "Mont Heavy", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Kufi Arabic";
 }
+@media (max-height: 600px) {
+  h5, .h5 {
+    font-size: 6vh;
+  }
+}
 @media (orientation: portrait) {
   h5, .h5 {
     font-size: 5vw;
@@ -279,6 +304,11 @@ h5, .h5 {
 }
 .museo .cash-in-color .tl1, .museo .system-color .tl1 {
   font-family: "MuseoSans", "Rubik", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Sans Hebrew", "Noto Kufi Arabic";
+}
+@media (max-height: 600px) {
+  .cash-in-color .tl1, .system-color .tl1 {
+    font-size: 6vh;
+  }
 }
 @media (orientation: portrait) {
   .cash-in-color .tl1, .system-color .tl1 {
@@ -296,6 +326,11 @@ h5, .h5 {
 .museo .cash-out-color .tl1 {
   font-family: "MuseoSans", "Rubik", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Sans Hebrew", "Noto Kufi Arabic";
 }
+@media (max-height: 600px) {
+  .cash-out-color .tl1 {
+    font-size: 6vh;
+  }
+}
 @media (orientation: portrait) {
   .cash-out-color .tl1 {
     font-size: 5vw;
@@ -311,6 +346,11 @@ h5, .h5 {
 }
 .museo .cash-in-color .tl2, .museo .system-color .tl2 {
   font-family: "MuseoSans", "Rubik", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Sans Hebrew", "Noto Kufi Arabic";
+}
+@media (max-height: 600px) {
+  .cash-in-color .tl2, .system-color .tl2 {
+    font-size: 4vh;
+  }
 }
 @media (orientation: portrait) {
   .cash-in-color .tl2, .system-color .tl2 {
@@ -328,6 +368,11 @@ h5, .h5 {
 .museo .cash-out-color .tl2 {
   font-family: "MuseoSans", "Rubik", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Sans Hebrew", "Noto Kufi Arabic";
 }
+@media (max-height: 600px) {
+  .cash-out-color .tl2 {
+    font-size: 4vh;
+  }
+}
 @media (orientation: portrait) {
   .cash-out-color .tl2 {
     font-size: 3vw;
@@ -343,6 +388,11 @@ h5, .h5 {
 }
 .museo .cash-in-color .d1, .museo .system-color .d1 {
   font-family: "MuseoSans", "Rubik", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Sans Hebrew", "Noto Kufi Arabic";
+}
+@media (max-height: 600px) {
+  .cash-in-color .d1, .system-color .d1 {
+    font-size: 5vh;
+  }
 }
 @media (orientation: portrait) {
   .cash-in-color .d1, .system-color .d1 {
@@ -360,6 +410,11 @@ h5, .h5 {
 .museo .cash-out-color .d1 {
   font-family: "MuseoSans", "Rubik", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Sans Hebrew", "Noto Kufi Arabic";
 }
+@media (max-height: 600px) {
+  .cash-out-color .d1 {
+    font-size: 5vh;
+  }
+}
 @media (orientation: portrait) {
   .cash-out-color .d1 {
     font-size: 4vw;
@@ -375,6 +430,11 @@ h5, .h5 {
 }
 .museo .cash-in-color .d2, .museo .system-color .d2 {
   font-family: "MuseoSans", "Rubik", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Sans Hebrew", "Noto Kufi Arabic";
+}
+@media (max-height: 600px) {
+  .cash-in-color .d2, .system-color .d2 {
+    font-size: 4vh;
+  }
 }
 @media (orientation: portrait) {
   .cash-in-color .d2, .system-color .d2 {
@@ -392,6 +452,11 @@ h5, .h5 {
 .museo .cash-out-color .d2 {
   font-family: "MuseoSans", "Rubik", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Sans Hebrew", "Noto Kufi Arabic";
 }
+@media (max-height: 600px) {
+  .cash-out-color .d2 {
+    font-size: 4vh;
+  }
+}
 @media (orientation: portrait) {
   .cash-out-color .d2 {
     font-size: 3vw;
@@ -407,6 +472,11 @@ h5, .h5 {
 }
 .museo .cash-in-color .d2b, .museo .system-color .d2b {
   font-family: "MuseoSans", "Rubik", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Sans Hebrew", "Noto Kufi Arabic";
+}
+@media (max-height: 600px) {
+  .cash-in-color .d2b, .system-color .d2b {
+    font-size: 4vh;
+  }
 }
 @media (orientation: portrait) {
   .cash-in-color .d2b, .system-color .d2b {
@@ -424,6 +494,11 @@ h5, .h5 {
 .museo .cash-out-color .d2b {
   font-family: "MuseoSans", "Rubik", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Sans Hebrew", "Noto Kufi Arabic";
 }
+@media (max-height: 600px) {
+  .cash-out-color .d2b {
+    font-size: 4vh;
+  }
+}
 @media (orientation: portrait) {
   .cash-out-color .d2b {
     font-size: 3vw;
@@ -435,6 +510,11 @@ h5, .h5 {
   font-size: 4vh;
   line-height: 1;
   color: #0e4160;
+}
+@media (max-height: 600px) {
+  .cash-in-color .m1, .system-color .m1 {
+    font-size: 5vh;
+  }
 }
 @media (orientation: portrait) {
   .cash-in-color .m1, .system-color .m1 {
@@ -448,6 +528,11 @@ h5, .h5 {
   line-height: 1;
   color: #403c51;
 }
+@media (max-height: 600px) {
+  .cash-out-color .m1 {
+    font-size: 5vh;
+  }
+}
 @media (orientation: portrait) {
   .cash-out-color .m1 {
     font-size: 4vw;
@@ -460,6 +545,11 @@ h5, .h5 {
   line-height: 1;
   color: #0e4160;
 }
+@media (max-height: 600px) {
+  .cash-in-color .m2, .system-color .m2 {
+    font-size: 4vh;
+  }
+}
 @media (orientation: portrait) {
   .cash-in-color .m2, .system-color .m2 {
     font-size: 3vw;
@@ -471,6 +561,11 @@ h5, .h5 {
   font-size: 3vh;
   line-height: 1;
   color: #403c51;
+}
+@media (max-height: 600px) {
+  .cash-out-color .m2 {
+    font-size: 4vh;
+  }
 }
 @media (orientation: portrait) {
   .cash-out-color .m2 {
@@ -516,6 +611,11 @@ button {
 }
 .museo .round-progress-button {
   font-family: "MuseoSans", "Rubik", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Sans Hebrew", "Noto Kufi Arabic";
+}
+@media (max-height: 600px) {
+  .round-progress-button {
+    font-size: 4vh;
+  }
 }
 @media (orientation: portrait) {
   .round-progress-button {
@@ -574,6 +674,11 @@ button {
 }
 .museo .progress-button {
   font-family: "MuseoSans", "Rubik", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Sans Hebrew", "Noto Kufi Arabic";
+}
+@media (max-height: 600px) {
+  .progress-button {
+    font-size: 4vh;
+  }
 }
 @media (orientation: portrait) {
   .progress-button {
@@ -638,6 +743,11 @@ button {
 }
 .museo .filled-progress-button {
   font-family: "MuseoSans", "Rubik", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Sans Hebrew", "Noto Kufi Arabic";
+}
+@media (max-height: 600px) {
+  .filled-progress-button {
+    font-size: 4vh;
+  }
 }
 @media (orientation: portrait) {
   .filled-progress-button {
@@ -708,6 +818,11 @@ button {
 .museo .filled-progress-button-bg {
   font-family: "MuseoSans", "Rubik", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Sans Hebrew", "Noto Kufi Arabic";
 }
+@media (max-height: 600px) {
+  .filled-progress-button-bg {
+    font-size: 4vh;
+  }
+}
 @media (orientation: portrait) {
   .filled-progress-button-bg {
     font-size: 3vw;
@@ -759,6 +874,11 @@ button {
 }
 .museo .bordered-progress-button {
   font-family: "MuseoSans", "Rubik", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Sans Hebrew", "Noto Kufi Arabic";
+}
+@media (max-height: 600px) {
+  .bordered-progress-button {
+    font-size: 4vh;
+  }
 }
 @media (orientation: portrait) {
   .bordered-progress-button {
@@ -1249,6 +1369,19 @@ footer {
   min-height: 12vh;
 }
 
+.print-receipt-wrapper {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+          align-items: center;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: row;
+          flex-direction: row;
+}
+
 @media (max-height: 900px) {
   .take-a-photo {
     display: -webkit-box;
@@ -1359,6 +1492,11 @@ footer {
 .museo .cash-out-color .mainv .actions .button-yes {
   font-family: "MuseoSans", "Rubik", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Sans Hebrew", "Noto Kufi Arabic";
 }
+@media (max-height: 600px) {
+  .cash-out-color .mainv .actions .button-yes {
+    font-size: 4vh;
+  }
+}
 @media (orientation: portrait) {
   .cash-out-color .mainv .actions .button-yes {
     font-size: 3vw;
@@ -1375,6 +1513,11 @@ footer {
 }
 .museo .cash-out-color .mainv .actions .button-no {
   font-family: "MuseoSans", "Rubik", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Sans Hebrew", "Noto Kufi Arabic";
+}
+@media (max-height: 600px) {
+  .cash-out-color .mainv .actions .button-no {
+    font-size: 4vh;
+  }
 }
 @media (orientation: portrait) {
   .cash-out-color .mainv .actions .button-no {
@@ -1396,6 +1539,12 @@ footer {
 .museo .cash-out-color .mainv .actions .button-no:active {
   font-family: "MuseoSans", "Rubik", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Sans Hebrew", "Noto Kufi Arabic";
 }
+@media (max-height: 600px) {
+  .cash-out-color .mainv .actions .button-yes:active,
+  .cash-out-color .mainv .actions .button-no:active {
+    font-size: 4vh;
+  }
+}
 @media (orientation: portrait) {
   .cash-out-color .mainv .actions .button-yes:active,
   .cash-out-color .mainv .actions .button-no:active {
@@ -1415,6 +1564,11 @@ footer {
 .museo .cash-in-color .mainv .actions .button-yes {
   font-family: "MuseoSans", "Rubik", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Sans Hebrew", "Noto Kufi Arabic";
 }
+@media (max-height: 600px) {
+  .cash-in-color .mainv .actions .button-yes {
+    font-size: 4vh;
+  }
+}
 @media (orientation: portrait) {
   .cash-in-color .mainv .actions .button-yes {
     font-size: 3vw;
@@ -1431,6 +1585,11 @@ footer {
 }
 .museo .cash-in-color .mainv .actions .button-no {
   font-family: "MuseoSans", "Rubik", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Sans Hebrew", "Noto Kufi Arabic";
+}
+@media (max-height: 600px) {
+  .cash-in-color .mainv .actions .button-no {
+    font-size: 4vh;
+  }
 }
 @media (orientation: portrait) {
   .cash-in-color .mainv .actions .button-no {
@@ -1451,6 +1610,12 @@ footer {
 .museo .cash-in-color .mainv .actions .button-yes:active,
 .museo .cash-in-color .mainv .actions .button-no:active {
   font-family: "MuseoSans", "Rubik", "Noto Sans CJK CS", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK TC", "Noto Sans Hebrew", "Noto Kufi Arabic";
+}
+@media (max-height: 600px) {
+  .cash-in-color .mainv .actions .button-yes:active,
+  .cash-in-color .mainv .actions .button-no:active {
+    font-size: 4vh;
+  }
 }
 @media (orientation: portrait) {
   .cash-in-color .mainv .actions .button-yes:active,
@@ -2067,6 +2232,10 @@ footer {
   width: 30vh;
 }
 
+.rates-section {
+  margin-left: 2em;
+}
+
 #change-language-section #language-dropdown-toggle {
   -webkit-box-align: center;
   -webkit-align-items: center;
@@ -2668,6 +2837,11 @@ footer {
 .standard-keyboard .key:active {
   border: none;
 }
+@media (max-height: 600px) {
+  .standard-keyboard .key {
+    font-size: 5vh;
+  }
+}
 .standard-keyboard .space {
   width: 71vh;
 }
@@ -2709,26 +2883,16 @@ footer {
   display: block;
 }
 
-#print-receipt-cash-in-button, #print-receipt-cash-out-button, #print-receipt-cash-in-fail-button {
-  margin-top: 3vh;
-}
-
 #send-sms-receipt-cash-in-button, #send-sms-receipt-cash-out-button, #send-sms-receipt-cash-in-fail-button {
   margin-left: 3vh;
-  margin-top: 3vh;
 }
 
 #fiat_complete_viewport #print-receipt-cash-out-button #send-sms-receipt-cash-out-button {
   margin-top: 18vh;
 }
 
-#print-receipt-cash-in-message, #print-receipt-cash-out-message, #print-receipt-cash-in-fail-message {
-  margin-top: 4vh;
-}
-
 #send-sms-receipt-cash-in-message, #send-sms-receipt-cash-out-message, #send-sms-receipt-cash-in-fail-message {
   margin-left: 3vh;
-  margin-top: 4vh;
 }
 
 .promo-code-title-wrapper {
@@ -2818,6 +2982,10 @@ footer {
   -webkit-box-pack: end;
   -webkit-justify-content: flex-end;
           justify-content: flex-end;
+}
+.i18n-rtl .rates-section {
+  margin-left: 0;
+  margin-right: 2em;
 }
 
 .send-only-total {

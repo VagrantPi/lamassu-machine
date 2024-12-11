@@ -80,14 +80,14 @@ function updateSupervisor (cb) {
         .split('\n')
         .flatMap(line => {
           const service = line.split(' ', 1)?.[0]
-          return (!service || service === 'lamassu-watchdog') ? [] : [service]
+          return service ? [service] : []
         })
-        .join(' ')
+        .filter(service => service !== 'lamassu-watchdog')
       /*
        * NOTE: Keep old behavior in case we don't get the expected output:
        * update and restart all services. result:finished won't work.
        */
-      return services.length > 0 ? services : 'all'
+      return services.length > 0 ? services : ['all']
     }
 
     try {
@@ -96,19 +96,32 @@ function updateSupervisor (cb) {
     } catch (err) {
       return err.status === 3 ?
         extractServices(err.stdout) :
-        'all' /* NOTE: see note above */
+        ['all'] /* NOTE: see note above */
     }
   }
 
   const osuser = getOSUser()
   const services = getServices()
+  const allServices = services.join(' ')
+  const servicesNoCalibrateScreen = services.filter(service => service !== 'calibrate-screen').join(' ')
 
-  async.series([
+  const commands = [
     async.apply(command, `cp ${supervisorPath}/* /etc/supervisor/conf.d/`),
     async.apply(command, `sed -i 's|^user=.*\$|user=${osuser}|;' /etc/supervisor/conf.d/lamassu-browser.conf || true`),
-    async.apply(command, `supervisorctl update ${services}`),
-    async.apply(command, `supervisorctl restart ${services}`),
-  ], err => {
+    async.apply(command, `rm -f /etc/supervisor/conf.d/calibrate-screen.conf`),
+    async.apply(command, `supervisorctl update ${allServices}`),
+    async.apply(command, `supervisorctl stop ${servicesNoCalibrateScreen}`),
+  ]
+
+  if (machineCode === 'aveiro') {
+    commands.push(async.apply(command, `supervisorctl stop lamassu-gsr50-devstart lamassu-gsr50`))
+    commands.push(async.apply(command, `cp ${applicationParentFolder}/lamassu-machine/lib/gsr50/binaries/* /opt/FujitsuGSR50/`))
+    commands.push(async.apply(command, `chmod +x /opt/FujitsuGSR50/FujitsuGSR50`))
+  }
+
+  commands.push(async.apply(command, `supervisorctl restart ${servicesNoCalibrateScreen}`))
+
+  async.series(commands, err => {
     if (err) throw err;
     cb()
   })
@@ -132,7 +145,7 @@ const updateSystemd = cb => {
 
 function restartWatchdogService (cb) {
   async.series([
-    async.apply(command, 'supervisorctl update lamassu-watchdog'),
+    async.apply(command, 'supervisorctl update'),
     async.apply(command, 'supervisorctl restart lamassu-watchdog'),
   ], err => {
     if (err) throw err;
@@ -182,10 +195,7 @@ function installDeviceConfig (cb) {
       newDeviceConfig.billDispenser.cassettes = currentDeviceConfig.billDispenser.cassettes
     }
     if (currentDeviceConfig.billValidator) {
-      newDeviceConfig.billValidator.deviceType = currentDeviceConfig.billValidator.deviceType
-      if (currentDeviceConfig.billValidator.rs232) {
-        newDeviceConfig.billValidator.rs232.device = currentDeviceConfig.billValidator.rs232.device
-      }
+      newDeviceConfig.billValidator = currentDeviceConfig.billValidator
     }
     if (currentDeviceConfig.kioskPrinter) {
       newDeviceConfig.kioskPrinter.model = currentDeviceConfig.kioskPrinter.model
@@ -222,7 +232,6 @@ const upgrade = () => {
     async.apply(command, `tar zxf ${basePath}/package/subpackage.tgz -C ${basePath}/package/`),
     async.apply(command, `rm -rf ${applicationParentFolder}/lamassu-machine/node_modules/`),
     async.apply(command, `cp -PR ${basePath}/package/subpackage/lamassu-machine ${applicationParentFolder}`),
-    async.apply(command, `cp -PR ${basePath}/package/subpackage/hardware/${hardwareCode}/node_modules ${applicationParentFolder}/lamassu-machine/`),
     async.apply(command, `mv ${applicationParentFolder}/lamassu-machine/verify/verify.${arch} ${applicationParentFolder}/lamassu-machine/verify/verify`),
     async.apply(command, `mv ${applicationParentFolder}/lamassu-machine/camera-streamer/camera-streamer.${arch} ${applicationParentFolder}/lamassu-machine/camera-streamer/camera-streamer`),
     async.apply(installDeviceConfig),
