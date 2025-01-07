@@ -22,7 +22,7 @@ FROM lamassu/upboard-build:3.0 as build
   RUN json -I -f package.json -e 'this.dependencies["genmega"] = this.optionalDependencies["genmega"]; delete this.optionalDependencies["genmega"]'
 
   RUN npm version --allow-same-version --git-tag-version false --commit-hooks false 1.0.0
-  RUN npm install
+  RUN npm install --cpu=x64 --os=linux --libc=glibc
   COPY . ./
 
   RUN bash ./deploy/codebase/ci-build.sh && \
