@@ -5,7 +5,7 @@ const fs = require('fs')
 const cp = require('child_process')
 const path = require('path')
 
-const watchdogInfoLoader = require('./lib/watchdog-info')
+const watchdogInfoLoader = require('./lib/storage/watchdog-info')
 
 const log = console.log;
 const error = console.error;

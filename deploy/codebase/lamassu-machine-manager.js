@@ -34,7 +34,11 @@ const ERROR = err => report(err, null, () => {})
 
 function command(cmd, cb) {
   LOG(`Running command \`${cmd}\``)
-  cp.exec(cmd, {timeout: TIMEOUT}, function(err) {
+  cp.exec(cmd, {timeout: TIMEOUT}, function(err, stdout, stderr) {
+    if (err) {
+      err.stdout = stdout
+      err.stderr = stderr
+    }
     cb(err);
   });
 }
@@ -143,6 +147,19 @@ const updateSystemd = cb => {
     .catch(err => cb(err))
 }
 
+const disableSSH = cb => {
+  LOG("Disable SSH and close port 22")
+  return async.series([
+    async.apply(command, 'systemctl stop ssh'),
+    async.apply(command, 'systemctl disable ssh'),
+    async.apply(command, 'ufw --force reset'),
+    async.apply(command, 'ufw enable'),
+  ], err => {
+    if (err) throw err;
+    cb()
+  })
+}
+
 function restartWatchdogService (cb) {
   async.series([
     async.apply(command, 'supervisorctl update'),
@@ -237,6 +254,7 @@ const upgrade = () => {
     async.apply(installDeviceConfig),
     async.apply(updateSupervisor),
     async.apply(updateSystemd),
+    async.apply(disableSSH),
     async.apply(updateUdev),
     async.apply(updateAcpChromium),
     async.apply(report, null, 'finished.'),
