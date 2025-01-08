@@ -19,7 +19,7 @@ FROM lamassu/upboard-build:3.0 as build
 
   RUN npm install --global json
   RUN json -I -f package.json -e 'this.dependencies["@lamassu/bnr-advance"] = this.optionalDependencies["@lamassu/bnr-advance"]; delete this.optionalDependencies["@lamassu/bnr-advance"]'
-  RUN json -I -f package.json -e 'this.dependencies["genmega"] = this.optionalDependencies["genmega"]; delete this.optionalDependencies["genmega"]'
+  RUN json -I -f package.json -e 'this.dependencies["@lamassu/genmega"] = this.optionalDependencies["@lamassu/genmega"]; delete this.optionalDependencies["@lamassu/genmega"]'
 
   RUN npm version --allow-same-version --git-tag-version false --commit-hooks false 1.0.0
   RUN npm install
