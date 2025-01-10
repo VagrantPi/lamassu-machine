@@ -7,7 +7,6 @@ Error.stackTraceLimit = 50
 // TODO: go through code and take out all evil throws
 require('../lib/logging')
 
-const db = require('../lib/storage/settings/db')
 var minimist = require('minimist')
 var Brain = require('../lib/brain')
 var Configuration = require('../lib/configuration.js')
@@ -29,27 +28,19 @@ function bail (err) {
 }
 
 function startBrain () {
-  db.migrate.latest().then(() => {
-    console.log('Database migration complete')
+  var commandLine = minimist(process.argv.slice(2))
 
-    var commandLine = minimist(process.argv.slice(2))
+  var config = Configuration.loadConfig(commandLine)
 
-    var config = Configuration.loadConfig(commandLine)
+  brain = new Brain(config)
 
-    brain = new Brain(config)
+  const isGenmegaMachine = config.cryptomatMaker === 'genmega'
+  scanner = config.mockCam
+    ? require('../lib/mocks/scanner')
+    : require(`../lib/${isGenmegaMachine ? 'scanner-genmega' : 'scanner'}`)
 
-    const isGenmegaMachine = config.cryptomatMaker === 'genmega'
-    scanner = config.mockCam
-      ? require('../lib/mocks/scanner')
-      : require(`../lib/${isGenmegaMachine ? 'scanner-genmega' : 'scanner'}`)
-
-    brain.on('error', bail)
-    brain.run()
-  }).catch(err => {
-    console.error('Database migration failed')
-    console.error(err)
-    process.exit(1)
-  })
+  brain.on('error', bail)
+  brain.run()
 }
 
 process.on('uncaughtException', err => {
