@@ -40,3 +40,4 @@ test/stress/config.json
 result.jpg
 
 build-scripts/update.tar
+licenses.json

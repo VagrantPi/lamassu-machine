@@ -35,7 +35,8 @@
   },
   "optionalDependencies": {
     "@lamassu/bnr-advance": "1.4.0",
-    "@lamassu/genmega": "^1.2.0"
+    "@lamassu/genmega": "^1.2.0",
+    "@lamassu/manatee": "^1.0.3"
   },
   "devDependencies": {
     "autoprefixer": "9.4.5",

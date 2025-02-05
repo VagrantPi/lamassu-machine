@@ -55,6 +55,7 @@ mkdir $TARGET_MACHINE_DIR/verify
 cp $MACHINE_DIR/verify/* $TARGET_MACHINE_DIR/verify/
 
 # Codebase setup
+cp $MACHINE_DIR/licenses.json $TARGET_MACHINE_DIR
 cp $MACHINE_DIR/*.js $TARGET_MACHINE_DIR
 cp $MACHINE_DIR/package.json $TARGET_MACHINE_DIR
 cp -r $MACHINE_DIR/lib $TARGET_MACHINE_DIR
