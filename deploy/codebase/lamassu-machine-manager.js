@@ -43,19 +43,27 @@ function command(cmd, cb) {
   });
 }
 
-const isLMX = () => {
+let ETC_OS_RELEASE = []
+const readOSRelease = () => {
   try {
-    return fs.readFileSync('/etc/os-release', { encoding: 'utf8' })
-      .split('\n')
-      .includes('IMAGE_ID=lamassu-machine-xubuntu')
+    if (ETC_OS_RELEASE.length === 0)
+      ETC_OS_RELEASE = fs.readFileSync('/etc/os-release', { encoding: 'utf8' }).split('\n')
+    return ETC_OS_RELEASE
   } catch (err) {
-    return false
+    return []
   }
 }
 
+const isLMX = () =>
+  readOSRelease().includes('IMAGE_ID=lamassu-machine-xubuntu')
+
+const isMaybeLMX = () =>
+  readOSRelease().includes('ID=ubuntu')
+    || (hardwareCode === 'upboard' && machineCode === 'aveiro')
+
 const getOSUser = () => {
   try {
-    return (!machineWithMultipleCodes.includes(hardwareCode) || isLMX()) ? 'lamassu' : 'ubilinux'
+    return (!machineWithMultipleCodes.includes(hardwareCode) || isLMX() || isMaybeLMX()) ? 'lamassu' : 'ubilinux'
   } catch (err) {
     return 'ubilinux'
   }
