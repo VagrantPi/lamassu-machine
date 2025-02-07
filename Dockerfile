@@ -17,7 +17,7 @@ RUN cp -r ./deploy-files/fonts/* ./ui/css/fonts/
 
 
 # Runtime
-FROM nginx:1.25.3-alpine
+FROM nginx:1.27.2-alpine
 
 RUN apk add nodejs --update-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/main --allow-untrusted
 

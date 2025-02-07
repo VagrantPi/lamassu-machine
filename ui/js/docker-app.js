@@ -5,8 +5,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 var queryString = window.location.search;
 var params = new URLSearchParams(queryString.substring(1));
-var SCREEN = params.get('screen');
-var DEBUG_MODE = SCREEN ? 'demo' : params.get('debug');
+var DEBUG_MODE = params.get('debug');
 var CASH_OUT_QR_COLOR = '#403c51';
 var CASH_IN_QR_COLOR = '#0e4160';
 var NUMBER_OF_BUTTONS = 3;
@@ -18,7 +17,6 @@ var totalPages = 0;
 var aspectRatio = '16:10';
 var isTwoWay = null;
 var isRTL = false;
-var two = null;
 var cryptomatModel = null;
 var termsConditionsTimeout = null;
 var termsConditionsAcceptanceInterval = null;
@@ -37,16 +35,13 @@ var coins;
 
 var currentState;
 
-var accepting = false;
 var websocket = null;
-var wifiKeyboard = null;
 var promoKeyboard = null;
 var usSsnKeypad = null;
 var phoneKeypad = null;
 var securityKeypad = null;
 var previousState = null;
 var buttonActive = true;
-var cassettes = null;
 var currentCryptoCode = null;
 var currentCoin = null;
 var currentCoins = [];
@@ -77,14 +72,12 @@ function verifyConnection() {
 
 function buttonPressed(button, data) {
   if (!buttonActive) return;
-  wifiKeyboard.deactivate();
   promoKeyboard.deactivate();
   emailKeyboard.deactivate();
   customRequirementTextKeyboard.deactivate();
   buttonActive = false;
   setTimeout(function () {
     buttonActive = true;
-    wifiKeyboard.activate();
     promoKeyboard.activate();
     emailKeyboard.activate();
     customRequirementTextKeyboard.activate();
@@ -112,14 +105,11 @@ function processData(data) {
     setCredit(data.credit, lastBill);
   }
   if (data.tx) setTx(data.tx);
-  if (data.wifiList) setWifiList(data.wifiList);
-  if (data.wifiSsid) setWifiSsid(data.wifiSsid);
   if (data.sendOnly) sendOnly(data.reason);
   if (data.fiatCredit) fiatCredit(data.fiatCredit);
   if (data.depositInfo) setDepositAddress(data.depositInfo);
   if (data.version) setVersion(data.version);
   if (data.cassettes) buildCassetteButtons(data.cassettes, NUMBER_OF_BUTTONS);
-  if (data.sent && data.total) setPartialSend(data.sent, data.total);
   if (data.readingBills) readingBills(data.readingBills);
   if (data.cryptoCode) translateCoin(data.cryptoCode);
   if (data.tx && data.tx.cashInFee) setFixedFee(data.tx.cashInFee);
@@ -145,24 +135,6 @@ function processData(data) {
   };
 
   switch (data.action) {
-    case 'wifiList':
-      if (cryptomatModel === 'douro1') {
-        setState('wifi');
-      } else {
-        setState('connect_ethernet');
-      }
-      break;
-    case 'wifiPass':
-      setState('wifi_password');
-      break;
-    case 'wifiConnecting':
-      t('wifi-connecting', translate('This could take a few moments.'));
-      setState('wifi_connecting');
-      break;
-    case 'wifiConnected':
-      t('wifi-connecting', translate('Connected. Waiting for ticker.'));
-      setState('wifi_connecting'); // in case we didn't go through wifi-connecting
-      break;
     case 'pairing':
       setState('pairing');
       break;
@@ -226,10 +198,8 @@ function processData(data) {
       setState('insert_bills_recycler');
       break;
     case 'acceptingBill':
-      setAccepting(true);
-      break;
     case 'rejectedBill':
-      setAccepting(false);
+      // still need to prevent screen change
       break;
     case 'cryptoTransferPending':
       setState('sending_coins');
@@ -279,10 +249,10 @@ function processData(data) {
       chooseCoin(data.coins, data.twoWayMode);
       break;
     case 'smsVerification':
-      smsVerification(data.threshold);
+      smsVerification();
       break;
     case 'emailVerification':
-      emailVerification(data.threshold);
+      emailVerification();
       break;
     case 'permission_id':
       idVerification();
@@ -453,13 +423,12 @@ function idVerification() {
   setScreen('permission_id');
 }
 
-function smsVerification(threshold) {
-  console.log('sms threshold to be displayed', threshold);
+function smsVerification() {
   setComplianceTimeout(null, 'finishBeforeSms');
   setScreen('sms_verification');
 }
 
-function emailVerification(threshold) {
+function emailVerification() {
   setComplianceTimeout(null, 'finishBeforeSms');
   setScreen('email_verification');
 }
@@ -477,7 +446,6 @@ function chooseCoin(coins, twoWayMode) {
 
   isTwoWay = twoWayMode;
   setChooseCoinColors();
-  // setupAnimation(twoWayMode, aspectRatio800)
 
   var defaultCoin = coins[0];
 
@@ -641,11 +609,6 @@ $(document).ready(function () {
 
   BigNumber.config({ ROUNDING_MODE: BigNumber.ROUND_HALF_EVEN });
 
-  wifiKeyboard = new Keyboard({
-    id: 'wifi-keyboard',
-    inputBox: '#input-passphrase'
-  }).init();
-
   promoKeyboard = new Keyboard({
     id: 'promo-keyboard',
     inputBox: '.promo-code-input'
@@ -711,41 +674,6 @@ $(document).ready(function () {
 
   initTranslatePage();
 
-  var wifiNetworkButtons = document.getElementById('networks');
-  touchEvent(wifiNetworkButtons, function (e) {
-    var target = $(e.target);
-    if (target.attr('id') === 'more-networks') {
-      moreNetworks();
-    } else {
-      var networkButton = target.closest('.wifi-network-button');
-      $('#networks > .active').removeClass('active');
-      networkButton.addClass('active');
-      window.setTimeout(function () {
-        networkButton.removeClass('active');
-      }, 1000);
-      var ssidEl = networkButton.find('.ssid');
-      var ssid = ssidEl.data('ssid');
-      if (ssid) {
-        var displaySsid = ssidEl.text();
-        var rawSsid = ssidEl.data('raw-ssid');
-        buttonPressed('wifiSelect', { ssid: ssid, rawSsid: rawSsid, displaySsid: displaySsid });
-      }
-    }
-  });
-
-  var wifiConnectButton = document.getElementById('wifiConnect');
-  touchEvent(wifiConnectButton, function () {
-    var wifiConnectButtonJ = $(wifiConnectButton);
-    wifiConnectButtonJ.addClass('active');
-    window.setTimeout(function () {
-      wifiConnectButtonJ.removeClass('active');
-    }, 500);
-    var pass = $('#wifi-keyboard input.passphrase').data('content');
-    var ssid = $('#js-i18n-wifi-for-ssid').data('ssid');
-    var rawSsid = $('#js-i18n-wifi-for-ssid').data('raw-ssid');
-    buttonPressed('wifiConnect', { pass: pass, ssid: ssid, rawSsid: rawSsid });
-  });
-
   var sendCoinsButton = document.getElementById('send-coins');
   var sendCoinsButton2 = document.getElementById('send-only-send-coins');
   touchEvent(sendCoinsButton, function () {
@@ -780,7 +708,6 @@ $(document).ready(function () {
     buttonPressed('cancelInsertBill');
   });
 
-  setupImmediateButton('wifiPassCancel', 'cancelWifiPass');
   setupImmediateButton('scanCancel', 'cancelScan');
   setupImmediateButton('completed_viewport', 'completed');
   setupImmediateButton('withdraw_failure_viewport', 'completed');
@@ -895,7 +822,6 @@ $(document).ready(function () {
   setupButton('max-phone-retries-ok', 'maxPhoneRetriesOk');
   //setupButton('max-email-retries-ok', 'maxEmailRetriesOk')
   setupButton('redeem-later-ok', 'idle');
-  setupButton('pre-receipt-ok', 'fiatReceipt');
   setupButton('fiat-error-ok', 'idle');
   setupButton('network-down-ok', 'idle');
   setupButton('fiat-transaction-error-ok', 'fiatReceipt');
@@ -1013,12 +939,6 @@ $(document).ready(function () {
   setupImmediateButton('custom-permission-cancel-numerical', 'cancelCustomInfoRequest', function () {
     customRequirementNumericalKeypad.deactivate.bind(customRequirementNumericalKeypad);
   });
-  setupImmediateButton('custom-permission-cancel-text', 'cancelCustomInfoRequest', function () {
-    customRequirementTextKeyboard.deactivate.bind(customRequirementTextKeyboard);
-    $('.text-input-field-1').removeClass('faded').data('content', '').val('');
-    $('.text-input-field-2').addClass('faded').data('content', '').val('');
-    customRequirementTextKeyboard.setInputBox('.text-input-field-1');
-  });
 
   setupButton('external-validation-ok', 'finishBeforeSms');
 
@@ -1070,12 +990,12 @@ $(document).ready(function () {
   });
 
   buildCassetteButtonEvents();
-  initDebug();
+  if (DEBUG_MODE === 'dev') initDebug();
 });
 
 function targetButton(element) {
   var classList = element.classList || [];
-  var special = classList.contains('button') || classList.contains('circle-button') || classList.contains('wifi-network-button') || classList.contains('square-button');
+  var special = classList.contains('button') || classList.contains('circle-button') || classList.contains('square-button');
   if (special) {
     return element;
   }
@@ -1162,7 +1082,6 @@ function setState(state, delay) {
   previousState = currentState;
   currentState = state;
 
-  wifiKeyboard.reset();
   promoKeyboard.reset();
   emailKeyboard.reset();
   customRequirementTextKeyboard.reset();
@@ -1181,35 +1100,6 @@ function setState(state, delay) {
 
 function revertScreen() {
   setScreen(currentState);
-}
-
-function setWifiList(recs, requestedPage) {
-  var networks = $('#networks');
-  if (!recs) recs = networks.data('recs');
-  var page = requestedPage || networks.data('page') || 0;
-  var offset = page * 4;
-  if (offset > recs.length - 1) {
-    offset = 0;
-    page = 0;
-  }
-  $('#more-networks').css({ 'display': 'none' });
-  networks.empty();
-  networks.data('page', page);
-  networks.data('recs', recs);
-  var remainingCount = recs.length - offset;
-  var len = Math.min(remainingCount, 4);
-  for (var i = 0; i < len; i++) {
-    var rec = recs[i + offset];
-    var bars = Math.floor(rec.strength * 4) + 1;
-    var html = '<div class="wifi-network-button filled-action-button tl2">' + '<span class="ssid" data-raw-ssid="' + rec.rawSsid + '" data-ssid="' + rec.ssid + '">' + rec.displaySsid + '</span>' + '<div class="wifiicon-wrapper"><img src="images/wifiicon/' + bars + '.svg"/></div></div>';
-    networks.append(html);
-  }
-
-  var moreTxt = translate('MORE');
-  var button = '<span display="inline-block" id="more-networks" class="button filled-action-button tl2">' + moreTxt + '</span>';
-  if (recs.length > 4) {
-    networks.append(button);
-  }
 }
 
 function setUpDirectionElement(element, direction) {
@@ -1409,30 +1299,8 @@ function updateButtonStyles() {
   textHeightQuantity = document.getElementById('js-terms-text').offsetHeight;
   var buttonDown = document.getElementById('scroll-down');
   var buttonUp = document.getElementById('scroll-up');
-  if (currentPage === 0) {
-    buttonUp.disabled = true;
-  } else {
-    buttonUp.disabled = false;
-  }
-
-  if (currentPage * scrollSize + scrollSize > textHeightQuantity && currentPage !== 0) {
-    buttonDown.disabled = true;
-  } else {
-    buttonDown.disabled = false;
-  }
-}
-
-function moreNetworks() {
-  var networks = $('#networks');
-  var page = networks.data('page');
-  setWifiList(null, page + 1);
-}
-
-function setWifiSsid(data) {
-  $('#js-i18n-wifi-for-ssid').data('ssid', data.ssid);
-  $('#js-i18n-wifi-for-ssid').data('raw-ssid', data.rawSsid);
-  t('wifi-for-ssid', translate('for %s', ['<strong>' + data.ssid + '</strong>']));
-  t('wifi-connect', translate("You're connecting to the WiFi network %s", ['<strong>' + data.ssid + '</strong>']));
+  buttonUp.disabled = currentPage === 0;
+  buttonDown.disabled = currentPage * scrollSize + scrollSize > textHeightQuantity && currentPage !== 0;
 }
 
 function setLocaleInfo(data) {
@@ -1465,7 +1333,6 @@ function setLocale(data) {
   isRTL = isArabic || isHebrew;
 
   setChooseCoinColors();
-  // setupAnimation(isTwoWay, aspectRatio800)
 
   if (isRTL) {
     $('body').addClass('i18n-rtl');
@@ -1602,7 +1469,6 @@ function formatDenomination(denom) {
 }
 
 function buildCassetteButtons(_cassettes, numberOfButtons) {
-  cassettes = _cassettes;
   var activeCassettes = _cassettes.filter(function (it) {
     return it.count === null || it.count > 0;
   });
@@ -1653,7 +1519,7 @@ function updateCrypto(selector, cryptoAmount, cryptoDisplayCode) {
 
 function lookupDecimalChar(localeCode) {
   var num = 1.1;
-  var localized = num.toLocaleString(jsLocaleCode, {
+  var localized = num.toLocaleString(localeCode, {
     useGrouping: true,
     maximumFractionDigits: 1,
     minimumFractionDigits: 1
@@ -1801,15 +1667,6 @@ function setBuyerAddress(address) {
   $('.crypto-address').html(formatAddress(address));
 }
 
-function setAccepting(currentAccepting) {
-  accepting = currentAccepting;
-  if (accepting) {
-    $('.bill img').transition({ x: 0, y: -303 }, 1000, 'ease-in');
-  } else {
-    $('.bill img').transition({ x: 0, y: 0 }, 1000, 'ease-out');
-  }
-}
-
 function highBill(highestBill, reason) {
   var reasonText = reason === 'transactionLimit' ? translate('Transaction limit reached.') : translate("We're a little low on crypto.");
 
@@ -1854,11 +1711,6 @@ function sendOnly(reason) {
   }
 
   setState('send_only');
-}
-
-function setPartialSend(sent, total) {
-  $('#already-sent').text(formatFiat(sent.fiat));
-  $('#pending-sent').text(formatFiat(total.fiat - sent.fiat));
 }
 
 function t(id, str) {
@@ -1933,9 +1785,7 @@ function displayCrypto(cryptoAtoms, cryptoCode) {
   // number of decimal places vary based on displayScale value
   var decimalPlaces = coin.displayScale - coin.unitScale + 6;
   var cryptoAmount = new BigNumber(cryptoAtoms).div(scale).round(decimalPlaces).toNumber();
-  var cryptoDisplay = formatCrypto(cryptoAmount);
-
-  return cryptoDisplay;
+  return formatCrypto(cryptoAmount);
 }
 
 function BN(s) {
@@ -2031,31 +1881,11 @@ function dispenseBatch(data) {
 }
 
 function initDebug() {
-  if (DEBUG_MODE === 'dev') {
-    $('body').css('cursor', 'default');
-    var style = document.createElement('style');
-    style.type = 'text/css';
-    style.innerHTML = 'button { cursor: default !important; }';
-    document.getElementsByTagName('head')[0].appendChild(style);
-
-    return;
-  }
-
-  if (DEBUG_MODE === 'demo') {
-    setPrimaryLocales(['en-US']);
-    setLocale('en-US');
-    $('body').css('cursor', 'default');
-    var style = document.createElement('style');
-    style.type = 'text/css';
-    style.innerHTML = 'button { cursor: default !important; }';
-    document.getElementsByTagName('head')[0].appendChild(style);
-
-    if (!SCREEN) {
-      return chooseCoin([{ display: 'Bitcoin', cryptoCode: 'BTC' }, { display: 'Ethereum', cryptoCode: 'ETH' }, { display: 'ZCash', cryptoCode: 'ZEC' }], true);
-    }
-
-    setState(SCREEN);
-  }
+  $('body').css('cursor', 'default');
+  var style = document.createElement('style');
+  style.type = 'text/css';
+  style.innerHTML = 'button { cursor: default !important; }';
+  document.getElementsByTagName('head')[0].appendChild(style);
 }
 
 function calculateAspectRatio() {
@@ -2084,41 +1914,6 @@ function calculateAspectRatio() {
 }
 
 var background = null;
-
-function doTransition(cb) {
-  // TODO Disable animations for V1
-  var toShow = null;
-  var toShowOver = null;
-
-  if (isTwoWay) {
-    toShow = ['#bg-to-show'];
-    toShowOver = ['.crypto-buttons', '.cash-in-box-wrapper'];
-  } else {
-    toShow = ['#bg-to-show'];
-    toShowOver = ['header', 'main'];
-  }
-
-  two.start();
-  var tl = new TimelineMax();
-  tl.set('.fade-in-delay', { opacity: 0, y: +30 }).set('.fade-in', { opacity: 0, y: +30 }).set(toShow, { zIndex: 1 }).set(toShowOver, { zIndex: 2 }).to(background, 0.5, { scale: isTwoWay ? 3 : 2 }).to('.fade-in', 0.4, {
-    opacity: 1,
-    onStart: cb,
-    y: 0
-  }, '=-0.2').to('.fade-in-delay', 0.4, { opacity: 1, y: 0 }, '=-0.2').set(background, { scale: 1 }).set(toShow, { zIndex: -1 }).set(toShowOver, { zIndex: 0 });
-  two.pause();
-}
-
-function setupAnimation(isTwoWay, isAr800) {
-  var elem = document.getElementById('bg-to-show');
-  while (elem.firstChild) {
-    elem.removeChild(elem.firstChild);
-  }
-  two = new Two({ fullscreen: true, type: Two.Types.svg, autostart: true }).appendTo(elem);
-
-  var elementId = (isTwoWay ? 'two-way' : 'one-way') + '-' + (isAr800 ? '800' : '1080') + (isRTL ? '-rtl' : '');
-  background = two.interpret(document.getElementById(elementId));
-  background.scale = 1;
-}
 
 function shouldEnableTouch() {
   var ua = navigator.userAgent;
@@ -2175,8 +1970,7 @@ function setCurrentDiscount(currentDiscount, promoCodeApplied) {
 }
 
 function setReceiptPrint(receiptStatus, smsReceiptStatus) {
-  var status = null;
-  if (receiptStatus) status = receiptStatus;else status = smsReceiptStatus;
+  var status = receiptStatus ? receiptStatus : smsReceiptStatus;
 
   var className = receiptStatus ? 'print-receipt' : 'send-sms-receipt';
   var printing = receiptStatus ? 'Printing receipt...' : 'Sending receipt...';
