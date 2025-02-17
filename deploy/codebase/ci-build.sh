@@ -12,17 +12,11 @@ setup_board_model() {
   supervisor_export_dir="$EXPORT_DIR/supervisor/$board/$model"
 
   # Create necessary directories
-  mkdir -p "$board_export_dir/node_modules"
+  mkdir -p "$board_export_dir"
   mkdir -p "$supervisor_export_dir"
 
   # Copy supervisor configuration files for the board and model
   cp "$SYSTEM_DIR/$board/$model/supervisor/conf.d/"* "$supervisor_export_dir/"
-
-  # Copy node_modules for the board
-  cp -R "$MACHINE_DIR/node_modules" "$board_export_dir/"
-
-  # Remove interpreted modules for the board
-  node "$MACHINE_DIR/deploy/remove-modules.js" "$board_export_dir/node_modules" --rem-interpreted
 
   # Optionally copy the device config
   mkdir $model_export_dir
@@ -61,16 +55,16 @@ mkdir $TARGET_MACHINE_DIR/verify
 cp $MACHINE_DIR/verify/* $TARGET_MACHINE_DIR/verify/
 
 # Codebase setup
+cp $MACHINE_DIR/licenses.json $TARGET_MACHINE_DIR
 cp $MACHINE_DIR/*.js $TARGET_MACHINE_DIR
 cp $MACHINE_DIR/package.json $TARGET_MACHINE_DIR
 cp -r $MACHINE_DIR/lib $TARGET_MACHINE_DIR
-cp -r $MACHINE_DIR/camera-streamer $TARGET_MACHINE_DIR
 cp -a $MACHINE_DIR/exec $TARGET_MACHINE_DIR
 cp $MACHINE_DIR/bin/lamassu-machine $TARGET_MACHINE_DIR/bin
 cp $MACHINE_DIR/bin/cam.js $TARGET_MACHINE_DIR/bin
 cp -r $MACHINE_DIR/ui $TARGET_MACHINE_DIR
-$MACHINE_DIR/node_modules/.bin/copy-node-modules $MACHINE_DIR $TARGET_MACHINE_DIR
-node $MACHINE_DIR/deploy/remove-modules.js $TARGET_MACHINE_DIR/node_modules --rem-native
+cp -r $MACHINE_DIR/node_modules $TARGET_MACHINE_DIR
+npm i --omit dev --prefix $TARGET_MACHINE_DIR
 
 # Fonts setup
 mkdir -p $TARGET_MACHINE_DIR/ui/css/fonts

@@ -37,7 +37,7 @@ function startBrain () {
   const isGenmegaMachine = config.cryptomatMaker === 'genmega'
   scanner = config.mockCam
     ? require('../lib/mocks/scanner')
-    : require(`../lib/${isGenmegaMachine ? 'scanner-genmega' : 'scanner'}`)
+    : require(`../lib/${isGenmegaMachine ? 'scanner-genmega' : 'scanner-node'}`)
 
   brain.on('error', bail)
   brain.run()
