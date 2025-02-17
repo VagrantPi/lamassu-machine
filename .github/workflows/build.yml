@@ -13,9 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -39,6 +36,7 @@ jobs:
           build-args: |
             NPM_TOKEN=${{ secrets.NPM_TOKEN }}
             GPG_PASSPHRASE=${{ secrets.GPG_PASSPHRASE }}
+            GPG_PASSPHRASE_LICENSE=${{ secrets.GPG_PASSPHRASE_LICENSE }}
 
       - name: Extract artifact from Docker image
         run: |
