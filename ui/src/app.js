@@ -47,6 +47,8 @@ let emailKeyboard = null
 let customRequirementNumericalKeypad = null
 let customRequirementTextKeyboard = null
 let customRequirementChoiceList = null
+var viewportButtonEventsActive = null
+var viewportEvents = {}
 
 var MUSEO = ['ca', 'cs', 'da', 'de', 'en', 'es', 'et', 'fi', 'fr', 'hr',
   'hu', 'it', 'lt', 'nb', 'nl', 'pl', 'pt', 'ro', 'sl', 'sv', 'tr']
@@ -90,6 +92,7 @@ const LN = 'LN'
 const BTC = 'BTC'
 
 function processData (data) {
+  if (data.screenOpts) setScreenOptions(data.screenOpts)
   if (data.localeInfo) setLocaleInfo(data.localeInfo)
   if (data.locale) setLocale(data.locale)
   if (data.supportedCoins) setCoins(data.supportedCoins)
@@ -109,7 +112,10 @@ function processData (data) {
   if (data.cassettes) buildCassetteButtons(data.cassettes, NUMBER_OF_BUTTONS)
   if (data.readingBills) readingBills(data.readingBills)
   if (data.cryptoCode) translateCoin(data.cryptoCode)
-  if (data.tx && data.tx.cashInFee) setFixedFee(data.tx.cashInFee)
+  if (data.tx) {
+    if (data.tx.cashInFee) setFixedFee(data.tx.cashInFee)
+    else if (data.tx.cashOutFee) setFixedFee(data.tx.cashOutFee)
+  }
   if (data.terms) setTermsScreen(data.terms)
   if (data.dispenseBatch) dispenseBatch(data.dispenseBatch)
   if (data.direction) setDirection(data.direction)
@@ -117,10 +123,12 @@ function processData (data) {
   if (data.hardLimit) setHardLimit(data.hardLimit)
   if (data.cryptomatModel) setCryptomatModel(data.cryptomatModel)
   if (data.areThereAvailablePromoCodes !== undefined) setAvailablePromoCodes(data.areThereAvailablePromoCodes)
+  if (data.allRates && data.ratesFiat) setRates(data.allRates, data.ratesFiat)
 
   if (data.tx && data.tx.discount) setCurrentDiscount(data.tx.discount)
   if (data.receiptStatus) setReceiptPrint(data.receiptStatus, null)
   if (data.smsReceiptStatus) setReceiptPrint(null, data.smsReceiptStatus)
+  if (data.automaticPrint) setAutomaticPrint(data.automaticPrint)
 
   if (data.context) {
     $('.js-context').hide()
@@ -294,6 +302,13 @@ function processData (data) {
     case 'externalCompliance':
       clearTimeout(complianceTimeout)
       externalCompliance(data.externalComplianceUrl)
+      break
+    case 'suspiciousAddress':
+      suspiciousAddress(data.blacklistMessage)
+      setState('suspicious_address')
+      break
+    case 'rates':
+      setState('rates')
       break
     default:
       if (data.action) setState(window.snakecase(data.action))
@@ -707,7 +722,7 @@ $(document).ready(function () {
     buttonPressed('blockedCustomerOk')
   })
   var insertBillCancelButton = document.getElementById('insertBillCancel')
-  touchImmediateEvent(insertBillCancelButton, function () {
+  touchImmediateEvent(insertBillCancelButton, null, function () {
     setBuyerAddress(null)
     buttonPressed('cancelInsertBill')
   })
@@ -719,11 +734,7 @@ $(document).ready(function () {
   })
 
   setupImmediateButton('scanCancel', 'cancelScan')
-  setupImmediateButton('completed_viewport', 'completed')
-  setupImmediateButton('withdraw_failure_viewport', 'completed')
-  setupImmediateButton('out_of_coins_viewport', 'completed')
-  setupImmediateButton('fiat_receipt_viewport', 'completed')
-  setupImmediateButton('fiat_complete_viewport', 'completed')
+  enableViewportButtonEvents()
   setupImmediateButton('chooseFiatCancel', 'chooseFiatCancel')
   setupImmediateButton('depositCancel', 'depositCancel')
   setupImmediateButton('printer-scan-cancel', 'cancelScan')
@@ -738,7 +749,7 @@ $(document).ready(function () {
   setupButton('choose-fiat-promo-button', 'insertPromoCode')
 
   var promoCodeCancelButton = document.getElementById('promo-code-cancel')
-  touchImmediateEvent(promoCodeCancelButton, function () {
+  touchImmediateEvent(promoCodeCancelButton, null, function () {
     promoKeyboard.deactivate.bind(promoKeyboard)
     buttonPressed('cancelPromoCode')
   })
@@ -856,6 +867,9 @@ $(document).ready(function () {
   setupButton('terms-ok', 'termsAccepted')
   setupButton('terms-ko', 'idle')
 
+  setupImmediateButton('rates-close', 'idle')
+  setupButton('rates-section-button', 'ratesScreen')
+
   setupButton('maintenance_restart', 'maintenanceRestart')
 
   calculateAspectRatio()
@@ -923,30 +937,23 @@ $(document).ready(function () {
   setupButton('facephoto-scan-failed-cancel', 'finishBeforeSms')
   setupButton('facephoto-scan-failed-cancel2', 'finishBeforeSms')
 
-  setupButton('custom-permission-yes', 'permissionCustomInfoRequest')
-  setupButton('custom-permission-no', 'finishBeforeSms')
-  setupImmediateButton('custom-permission-cancel-numerical', 'cancelCustomInfoRequest', () => {
-    customRequirementNumericalKeypad.deactivate.bind(customRequirementNumericalKeypad)
-  })
   setupImmediateButton('email-cancel', 'cancelEmail', () => {
     emailKeyboard.deactivate.bind(emailKeyboard)
     $('#email-input').data('content', '').val('')
     emailKeyboard.setInputBox('#email-input')
   })
+
+  setupButton('custom-permission-yes', 'permissionCustomInfoRequest')
+  setupButton('custom-permission-no', 'finishBeforeSms')
+  setupImmediateButton('custom-permission-cancel-numerical', 'cancelCustomInfoRequest',
+    customRequirementNumericalKeypad.deactivate.bind(customRequirementNumericalKeypad))
   setupImmediateButton('custom-permission-cancel-text', 'cancelCustomInfoRequest', () => {
-    customRequirementTextKeyboard.deactivate.bind(customRequirementTextKeyboard)
+    customRequirementTextKeyboard.deactivate.bind(customRequirementTextKeyboard)()
     $('.text-input-field-1').removeClass('faded').data('content', '').val('')
     $('.text-input-field-2').addClass('faded').data('content', '').val('')
     customRequirementTextKeyboard.setInputBox('.text-input-field-1')
   })
-  setupImmediateButton('custom-permission-cancel-choiceList', 'cancelCustomInfoRequest', () => {
-  })
-
-  setupButton('custom-permission-yes', 'permissionCustomInfoRequest')
-  setupButton('custom-permission-no', 'finishBeforeSms')
-  setupImmediateButton('custom-permission-cancel-numerical', 'cancelCustomInfoRequest', () => {
-    customRequirementNumericalKeypad.deactivate.bind(customRequirementNumericalKeypad)
-  })
+  setupImmediateButton('custom-permission-cancel-choiceList', 'cancelCustomInfoRequest')
 
   setupButton('external-validation-ok', 'finishBeforeSms')
 
@@ -1001,6 +1008,24 @@ $(document).ready(function () {
   if (DEBUG_MODE === 'dev') initDebug()
 })
 
+function disableViewportButtonEvents () {
+  viewportButtonEventsActive = false
+  disableImmediateButton('completed_viewport', 'completed')
+  disableImmediateButton('withdraw_failure_viewport', 'completed')
+  disableImmediateButton('out_of_coins_viewport', 'completed')
+  disableImmediateButton('fiat_receipt_viewport', 'completed')
+  disableImmediateButton('fiat_complete_viewport', 'completed')
+}
+
+function enableViewportButtonEvents () {
+  viewportButtonEventsActive = true
+  setupImmediateButton('completed_viewport', 'completed')
+  setupImmediateButton('withdraw_failure_viewport', 'completed')
+  setupImmediateButton('out_of_coins_viewport', 'completed')
+  setupImmediateButton('fiat_receipt_viewport', 'completed')
+  setupImmediateButton('fiat_complete_viewport', 'completed')
+}
+
 function targetButton (element) {
   var classList = element.classList || []
   var special = classList.contains('button') ||
@@ -1035,12 +1060,24 @@ function touchEvent (element, callback) {
   element.addEventListener('mousedown', handler)
 }
 
-function touchImmediateEvent (element, callback) {
+function touchImmediateEvent (element, action, callback) {
   function handler (e) {
     callback(e)
     e.stopPropagation()
     e.preventDefault()
   }
+
+  // Viewport events need to be disabled to improve UX in some cases. e.g. Not allowing to finish the transaction while a receipt is being printed
+  // To remove event listeners, the exact same function reference needs to be provided to removeEventListener().
+  // As such, the reference to the exact handler function needs to be saved to be called when disabling it, hence the need for viewportEvents
+  // As the same element can have different actions hooked on the same event, this needs to be stored as an array of <action, handler> pairs
+
+  // The viewportButtonEventsActive ensures that no repeated events are being added to the element
+  if (action && element.id.includes('_viewport')) {
+    if (!viewportEvents[element.id]) viewportEvents[element.id] = []
+    viewportEvents[element.id].push({ action, handler })
+  }
+
   if (shouldEnableTouch()) {
     element.addEventListener('touchstart', handler)
   }
@@ -1049,7 +1086,25 @@ function touchImmediateEvent (element, callback) {
 
 function setupImmediateButton (buttonClass, buttonAction, callback) {
   var button = document.getElementById(buttonClass)
-  touchImmediateEvent(button, function () {
+  touchImmediateEvent(button, buttonAction, function () {
+    if (callback) callback()
+    buttonPressed(buttonAction)
+  })
+}
+
+function disableTouchImmediateEvent(element, action) {
+  if (shouldEnableTouch()) {
+    element.removeEventListener('touchstart', viewportEvents[element.id].find(it => it.action === action).handler)
+  }
+  element.removeEventListener('mousedown', viewportEvents[element.id].find(it => it.action === action).handler)
+
+  // Trim the viewportEvents obj
+  viewportEvents[element.id] = viewportEvents[element.id].filter(it => it.action !== action)
+}
+
+function disableImmediateButton(buttonClass, buttonAction, callback) {
+  var button = document.getElementById(buttonClass)
+  disableTouchImmediateEvent(button, buttonAction, function () {
     if (callback) callback()
     buttonPressed(buttonAction)
   })
@@ -1538,7 +1593,7 @@ function buildCassetteButtonEvents () {
   var fiatButtons = document.getElementById('js-fiat-buttons')
   var lastTouch = null
 
-  touchImmediateEvent(fiatButtons, function (e) {
+  touchImmediateEvent(fiatButtons, null, function (e) {
     var now = Date.now()
     if (lastTouch && now - lastTouch < 100) return
     lastTouch = now
@@ -2027,6 +2082,7 @@ function setReceiptPrint (receiptStatus, smsReceiptStatus) {
 
   switch (status) {
     case 'disabled':
+      if (!viewportButtonEventsActive) enableViewportButtonEvents()
       $(`#${className}-cash-in-message`).addClass('hide')
       $(`#${className}-cash-in-button`).addClass('hide')
       $(`#${className}-cash-out-message`).addClass('hide')
@@ -2035,6 +2091,7 @@ function setReceiptPrint (receiptStatus, smsReceiptStatus) {
       $(`#${className}-cash-in-fail-button`).addClass('hide')
       break
     case 'available':
+      if (!viewportButtonEventsActive) enableViewportButtonEvents()
       $(`#${className}-cash-in-message`).addClass('hide')
       $(`#${className}-cash-in-button`).removeClass('hide')
       $(`#${className}-cash-out-message`).addClass('hide')
@@ -2043,6 +2100,7 @@ function setReceiptPrint (receiptStatus, smsReceiptStatus) {
       $(`#${className}-cash-in-fail-button`).removeClass('hide')
       break
     case 'printing':
+      if (viewportButtonEventsActive) disableViewportButtonEvents()
       const message = locale.translate(printing).fetch()
       $(`#${className}-cash-in-button`).addClass('hide')
       $(`#${className}-cash-in-message`).html(message)
@@ -2055,6 +2113,7 @@ function setReceiptPrint (receiptStatus, smsReceiptStatus) {
       $(`#${className}-cash-in-fail-message`).removeClass('hide')
       break
     case 'success':
+      if (!viewportButtonEventsActive) enableViewportButtonEvents()
       const successMessage = '✔ ' + locale.translate(success).fetch()
       $(`#${className}-cash-in-button`).addClass('hide')
       $(`#${className}-cash-in-message`).html(successMessage)
@@ -2067,6 +2126,7 @@ function setReceiptPrint (receiptStatus, smsReceiptStatus) {
       $(`#${className}-cash-in-fail-message`).removeClass('hide')
       break
     case 'failed':
+      if (!viewportButtonEventsActive) enableViewportButtonEvents()
       const failMessage = '✖ ' + locale.translate('An error occurred, try again.').fetch()
       $(`#${className}-cash-in-button`).addClass('hide')
       $(`#${className}-cash-in-message`).html(failMessage)
@@ -2084,4 +2144,58 @@ function setReceiptPrint (receiptStatus, smsReceiptStatus) {
 function externalCompliance (url) {
   qrize(url, $('#qr-code-external-validation'), cashDirection === 'cashIn' ? CASH_IN_QR_COLOR : CASH_OUT_QR_COLOR)
   return setScreen('external_compliance')
+}
+
+function setAutomaticPrint (automaticPrint) {
+  if (automaticPrint) {
+    $('#print-receipt-cash-in-button').hide()
+    $('#print-receipt-cash-out-button').hide()
+    $('#print-receipt-cash-in-fail-button').hide()
+  } else {
+    $('#print-receipt-cash-in-button').show()
+    $('#print-receipt-cash-out-button').show()
+    $('#print-receipt-cash-in-fail-button').show()
+  }
+}
+
+function suspiciousAddress (blacklistMessage) {
+  if (blacklistMessage) {
+    $(`#suspicious-address-message`).html(blacklistMessage)
+  } else {
+    $(`#suspicious-address-message`).html(translate("This address may be associated with a deceptive offer or a prohibited group. Please make sure you\'re using an address from your own wallet."))
+  }
+}
+
+function setScreenOptions (opts) {
+  (opts.rates && opts.rates.active) ? $('#rates-section').show() : $('#rates-section').hide()
+}
+
+function thousandSeparator (number, country, minimumFractionDigits) {
+  const numberFormatter = Intl.NumberFormat(country, { minimumFractionDigits })
+  return numberFormatter.format(number)
+}
+
+function setRates (allRates, fiat) {
+  const ratesTable = $('.rates-content')
+  const tableHeader = $(`<div class="xs-margin-bottom">
+  <h4 class="js-i18n">${translate('Buy')}</h4>
+  <h4 class="js-i18n">${translate('Crypto')}</h4>
+  <h4 class="js-i18n">${translate('Sell')}</h4>
+</div>`)
+  const coinEntries = []
+
+  Object.keys(allRates).forEach(it => {
+    const cashIn = BN(allRates[it].cashIn)
+    const cashOut = BN(allRates[it].cashOut)
+    const biggestDecimalPlaces = Math.max(cashIn.dp(), cashOut.dp())
+
+    coinEntries.push($(`<div class="xs-margin-bottom">
+    <p class="d2 js-i18n">${thousandSeparator(BN(allRates[it].cashIn).toFixed(2), localeCode)}</p>
+    <h4 class="js-i18n">${it}</h4>
+    <p class="d2 js-i18n">${thousandSeparator(BN(allRates[it].cashOut).toFixed(2), localeCode)}</p>
+  </div>`))
+  })
+
+  $('#rates-fiat-currency').text(fiat)
+  ratesTable.empty().append(tableHeader).append(coinEntries)
 }
