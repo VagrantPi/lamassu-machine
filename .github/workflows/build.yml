@@ -44,11 +44,16 @@ jobs:
           docker cp extract_artifact:/lamassu/lamassu-machine/build/codebase/update.tar ./update.tar
           docker rm extract_artifact
 
+      - name: Encrypt update.tar with GPG
+        run: |
+          echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --batch --yes --passphrase-fd 0 -c update.tar
+          rm update.tar
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: update.tar
-          path: update.tar
+          name: update.tar.gpg
+          path: update.tar.gpg
 
       - name: Move cache
         run: |
