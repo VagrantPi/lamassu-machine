@@ -84,7 +84,7 @@ cp -a $BUILD_FILES_DIR/fonts/* $TARGET_MACHINE_DIR/ui/css/fonts
 declare -A boards_and_models=(
  # ["aaeon"]=""
   ["upboard"]="sintra gaia tejo aveiro"
-  ["up4000"]="sintra gaia tejo aveiro"
+  ["up4000"]="sintra gaia tejo aveiro grandola"
   ["coincloud"]="jcm-ipro-rc mei-bnr mei-scr"
   ["generalbytes"]="batm3 batm7in"
   ["genmega"]="gemini gmuk1 gmuk2 wallkiosk"
