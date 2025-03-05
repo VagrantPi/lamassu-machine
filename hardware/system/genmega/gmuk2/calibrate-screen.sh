@@ -27,7 +27,7 @@ configure_touch() {
 ### CHANGE CONFIGURATION BELOW TO MATCH THE CONNECTED SCREEN ###
 
 # One of: normal, left, right
-configure_screen right
+configure_screen left
 # Find the screen name under "Virtual core pointer" of the following command:
 #   xinput list
-configure_touch 'ILITEK ILITEK-TP'
+configure_touch 'Silicon Works Multi-touch SW4101C'
