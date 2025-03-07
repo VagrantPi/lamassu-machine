@@ -141,11 +141,10 @@ function updateSupervisor (cb) {
 
 const updateSystemd = cb => {
   LOG("Make Supervisor start after X")
-  const override = dm => `[Unit]\nAfter=${dm}.service\nWants=${dm}.service\n`
+  const override = `[Unit]\nAfter=multi-user.target\nWants=multi-user.target\n`
   const SUPERVISOR_OVERRIDE = "/etc/systemd/system/supervisor.service.d/override.conf"
   return mkdir(path.dirname(SUPERVISOR_OVERRIDE), { recursive: true })
-    .then(() => isLMX() ? 'lightdm' : 'sddm') // Assume Ubilinux if not l-m-x
-    .then(dm => writeFile(SUPERVISOR_OVERRIDE, override(dm), { mode: 0o600, flush: true }))
+    .then(() => writeFile(SUPERVISOR_OVERRIDE, override, { mode: 0o600, flush: true }))
     .then(() => new Promise((resolve, reject) =>
       cp.execFile('systemctl', ['daemon-reload'], { timeout: 10000 },
         (error, _stdout, _stderr) => error ? reject(error) : resolve()
