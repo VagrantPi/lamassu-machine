@@ -57,13 +57,9 @@ const readOSRelease = () => {
 const isLMX = () =>
   readOSRelease().includes('IMAGE_ID=lamassu-machine-xubuntu')
 
-const isMaybeLMX = () =>
-  readOSRelease().includes('ID=ubuntu')
-    || (hardwareCode === 'upboard' && machineCode === 'aveiro')
-
 const getOSUser = () => {
   try {
-    return (!machineWithMultipleCodes.includes(hardwareCode) || isLMX() || isMaybeLMX()) ? 'lamassu' : 'ubilinux'
+    return (!machineWithMultipleCodes.includes(hardwareCode) || isLMX()) ? 'lamassu' : 'ubilinux'
   } catch (err) {
     return 'ubilinux'
   }
