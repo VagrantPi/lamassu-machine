@@ -165,6 +165,20 @@ const updateSystemd = cb => {
     .catch(err => cb(err))
 }
 
+const addUserToGroups = cb => {
+  if (!isLMX())
+    return cb()
+
+  LOG("Adding user lamassu to nopasswdlogin group")
+  new Promise((resolve, reject) =>
+    cp.execFile('usermod', ['-a', '-G', "nopasswdlogin", "lamassu"], { timeout: 2000 },
+      (error, _stdout, _stderr) => error ? reject(error) : resolve()
+    )
+  )
+    .then(() => cb())
+    .catch(err => cb(err))
+}
+
 const disableSSH = cb => {
   LOG("Disable SSH and close port 22")
   return async.series([
@@ -271,6 +285,7 @@ const upgrade = () => {
     async.apply(installDeviceConfig),
     async.apply(updateSupervisor),
     async.apply(updateSystemd),
+    async.apply(addUserToGroups),
     async.apply(disableSSH),
     async.apply(updateUdev),
     async.apply(updateAcpChromium),
