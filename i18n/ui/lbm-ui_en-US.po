@@ -958,6 +958,10 @@ msgstr "Verifying photo..."
 msgid "We got this"
 msgstr "We got this"
 
+#: On screen: withdraw_failure
+msgid "Our Internet was down for a bit but you'll receive your funds as soon as our connection is back."
+msgstr "Our Internet was down for a bit but you'll receive your funds as soon as our connection is back."
+
 #: On screen: dynamic
 msgid "More"
 msgstr "More"
