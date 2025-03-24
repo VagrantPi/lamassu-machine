@@ -155,7 +155,7 @@ const updateSystemd = cb => {
   if (isLMX())
     overrides.push(["lightdm.service", "[Service]\nExecStartPre=/bin/sleep 3\n"])
 
-  Promise.all(overrides.map(installSystemdOverride))
+  Promise.all(overrides.map(([unit, content]) => installSystemdOverride(unit, content)))
     .then(() => new Promise((resolve, reject) =>
       cp.execFile('systemctl', ['daemon-reload'], { timeout: 10000 },
         (error, _stdout, _stderr) => error ? reject(error) : resolve()
