@@ -14,7 +14,8 @@
     "device": "/dev/video-scan"
   },
   "billValidator": {
-    "deviceType": "hcm2"
+    "deviceType": "hcm2",
+    "rejectedDenominations": []
   },
   "billDispenser": {
     "model": "hcm2",
