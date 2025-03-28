@@ -14,7 +14,8 @@
     "device": "/dev/video-scan"
   },
   "billValidator": {
-    "deviceType": "gsr50"
+    "deviceType": "gsr50",
+    "rejectedDenominations": []
   },
   "billDispenser": {
     "model": "gsr50",

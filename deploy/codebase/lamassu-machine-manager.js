@@ -135,17 +135,46 @@ function updateSupervisor (cb) {
   })
 }
 
+const installSystemdOverride = (unit, content) => {
+  const overrideDir = path.join("/etc/systemd/system/", `${unit}.d`)
+  const overrideFile = path.join(overrideDir, "override.conf")
+  return mkdir(overrideDir, { recursive: true })
+    .then(() => writeFile(overrideFile, content, { mode: 0o600, flush: true }))
+}
+
 const updateSystemd = cb => {
-  LOG("Make Supervisor start after X")
-  const override = `[Unit]\nAfter=multi-user.target\nWants=multi-user.target\n`
-  const SUPERVISOR_OVERRIDE = "/etc/systemd/system/supervisor.service.d/override.conf"
-  return mkdir(path.dirname(SUPERVISOR_OVERRIDE), { recursive: true })
-    .then(() => writeFile(SUPERVISOR_OVERRIDE, override, { mode: 0o600, flush: true }))
+  LOG(
+    isLMX() ?
+      "Delay LightDM's start and make Supervisor wait for X" :
+      "Make Supervisor wait for X"
+  )
+
+  const overrides = [
+    ["supervisor.service", "[Unit]\nAfter=multi-user.target\nWants=multi-user.target\n"],
+  ]
+  if (isLMX())
+    overrides.push(["lightdm.service", "[Service]\nExecStartPre=/bin/sleep 3\n"])
+
+  Promise.all(overrides.map(([unit, content]) => installSystemdOverride(unit, content)))
     .then(() => new Promise((resolve, reject) =>
       cp.execFile('systemctl', ['daemon-reload'], { timeout: 10000 },
         (error, _stdout, _stderr) => error ? reject(error) : resolve()
       )
     ))
+    .then(() => cb())
+    .catch(err => cb(err))
+}
+
+const addUserToGroups = cb => {
+  if (!isLMX())
+    return cb()
+
+  LOG("Adding user lamassu to nopasswdlogin group")
+  new Promise((resolve, reject) =>
+    cp.execFile('usermod', ['-a', '-G', "nopasswdlogin", "lamassu"], { timeout: 2000 },
+      (error, _stdout, _stderr) => error ? reject(error) : resolve()
+    )
+  )
     .then(() => cb())
     .catch(err => cb(err))
 }
@@ -256,6 +285,7 @@ const upgrade = () => {
     async.apply(installDeviceConfig),
     async.apply(updateSupervisor),
     async.apply(updateSystemd),
+    async.apply(addUserToGroups),
     async.apply(disableSSH),
     async.apply(updateUdev),
     async.apply(updateAcpChromium),
