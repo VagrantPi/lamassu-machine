@@ -1284,7 +1284,7 @@ function setDirection (direction) {
 function setTermsScreen (data) {
   const $screen = $('.terms_screen_state')
   $screen.find('.js-terms-title').html(data.title)
-  startPage(data.text, data.acceptDisabled)
+  startPage(data.text || '', data.acceptDisabled)
   $screen.find('.js-terms-cancel-button').html(data.cancel)
   $screen.find('.js-terms-accept-button').html(data.accept)
   setTermsConditionsTimeout()
