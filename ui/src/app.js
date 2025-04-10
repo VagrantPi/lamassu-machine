@@ -1287,7 +1287,7 @@ function setTermsScreen (data) {
   startPage(data.text, data.acceptDisabled)
   $screen.find('.js-terms-cancel-button').html(data.cancel)
   $screen.find('.js-terms-accept-button').html(data.accept)
-  setTermsConditionsTimeout()
+  resetTermsConditionsTimeout()
   setAcceptButtonDisabled($screen, data)
   setTermsConditionsAcceptanceDelay($screen, data)
 }
@@ -1310,6 +1310,7 @@ function setTermsConditionsTimeout () {
 }
 
 function setTermsConditionsAcceptanceDelay (screen, data) {
+  clearTermsConditionsAcceptanceDelay()
   let acceptButton = screen.find('.js-terms-accept-button')
   acceptButton.css({ 'min-width': 0 })
 

@@ -239,9 +239,7 @@ function installDeviceConfig (cb) {
       newDeviceConfig.cryptomatModel = currentDeviceConfig.cryptomatModel
     }
     if (currentDeviceConfig.billDispenser && newDeviceConfig.billDispenser) {
-      newDeviceConfig.billDispenser.model = currentDeviceConfig.billDispenser.model
-      newDeviceConfig.billDispenser.device = currentDeviceConfig.billDispenser.device
-      newDeviceConfig.billDispenser.cassettes = currentDeviceConfig.billDispenser.cassettes
+      newDeviceConfig.billDispenser = currentDeviceConfig.billDispenser
     }
     if (currentDeviceConfig.billValidator) {
       newDeviceConfig.billValidator = currentDeviceConfig.billValidator
