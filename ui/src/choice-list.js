@@ -31,7 +31,7 @@ ChoiceList.prototype.init = function init (cb) {
 
 ChoiceList.prototype._buttonClickEventListener = function _buttonClickEventListener(self, e) {
     if (!self.active) return
-    setComplianceTimeout()
+    this.setComplianceTimeout()
     const target = $(e.target)
     if (target.hasClass('submit-choice-list-button')) {
       // do not submit if at least one choice is not selected
@@ -50,13 +50,14 @@ ChoiceList.prototype._buttonClickEventListener = function _buttonClickEventListe
       self._setupPager(self.currentPage)
       return self._setupChoices(self.currentPage)
     }
-    if (target.hasClass('choice-list-item')) {
+    const choiceItem = target.hasClass('choice-list-item') ? target : target.closest('.choice-list-item')
+
+    if (choiceItem.length) {
       // if it's not a selectMultiple (choose multiple options) type of choice list,
       // then deselect the previous choice before selecting the new one
       if (self.choiceType !== 'selectMultiple') self._deselectChoices()
-      self._toggleChoice(target[0].innerText)
+      self._toggleChoice(choiceItem[0].innerText)
     }
-
 }
 
 ChoiceList.prototype.replaceChoices = function (availableChoices, choiceType = 'single') {
