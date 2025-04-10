@@ -4226,7 +4226,10 @@ button[disabled] {
     -webkit-align-items: center;
             align-items: center;
     margin-top: 25vh;
-    margin-bottom: 5vh;
+    margin-bottom: 0;
+  }
+  .completed_state .primary-side .primary-side-title {
+    margin-top: 3vh;
   }
   .completed_state .secondary-side .qr-wrapper {
     position: absolute;
