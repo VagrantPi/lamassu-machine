@@ -310,6 +310,12 @@ function processData (data) {
     case 'rates':
       setState('rates')
       break
+    case 'enableLiveview':
+      enableLiveview(data.liveviewPort)
+      break
+    case 'disableLiveview':
+      disableLiveview()
+      break
     default:
       if (data.action) setState(window.snakecase(data.action))
   }
@@ -1284,7 +1290,7 @@ function setDirection (direction) {
 function setTermsScreen (data) {
   const $screen = $('.terms_screen_state')
   $screen.find('.js-terms-title').html(data.title)
-  startPage(data.text, data.acceptDisabled)
+  startPage(data.text || '', data.acceptDisabled)
   $screen.find('.js-terms-cancel-button').html(data.cancel)
   $screen.find('.js-terms-accept-button').html(data.accept)
   resetTermsConditionsTimeout()
@@ -2201,4 +2207,28 @@ function setRates (allRates, fiat) {
 
   $('#rates-fiat-currency').text(fiat)
   ratesTable.empty().append(tableHeader).append(coinEntries)
+}
+
+function enableLiveview (liveviewPort) {
+  const liveviewDiv = $('#liveview-div')
+  liveviewDiv.empty()
+
+  const liveviewImg = document.createElement('img')
+  liveviewImg.id = "liveview-img"
+  liveviewImg.type = "multipart/x-mixed-replace"
+  liveviewImg.src = `http://localhost:${liveviewPort}/?${Date.now()}`
+
+  liveviewDiv.append(liveviewImg)
+
+  liveviewImg.onload = () => {
+    $('#scan-images').addClass("hide")
+    liveviewDiv.removeClass("hide")
+  }
+}
+
+function disableLiveview () {
+  const liveviewDiv = $('#liveview-div')
+  liveviewDiv.empty()
+  liveviewDiv.addClass("hide")
+  $('#scan-images').removeClass("hide")
 }
