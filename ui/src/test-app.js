@@ -1,4 +1,4 @@
-/* globals $, Keypad, TimelineMax, requestAnimationFrame, kjua, Keyboard, locales, Jed */
+/* globals $, Keypad, TimelineMax, requestAnimationFrame, kjua, Keyboard, locales, Jed, ChoiceList */
 
 /*
 How this currently works: change the app.js import on start.html to test-app.js
@@ -19,6 +19,7 @@ let background = null
 let aspectRatio800 = true
 let locale = null
 let localeCode = 'en-US'
+let customRequirementChoiceList = null
 
 $(function () {
   $('body').css('cursor', 'default')
@@ -64,6 +65,16 @@ $(function () {
   })
 
   securityKeypad.activate()
+
+  customRequirementChoiceList = new ChoiceList({
+    id: 'custom-requirement-choicelist-wrapper',
+    setComplianceTimeout: () => console.log('heh')
+  }).init(function (result) {
+    if (currentState !== 'custom_permission_screen2_choiceList') return
+    buttonPressed('customInfoRequestSubmit', result)
+  })
+
+  customRequirementChoiceList.replaceChoices(['test', 'test2'])
 
   var cList = document.createElement('div')
   cList.id = 'clicker-list'
@@ -280,7 +291,8 @@ function setupFakes () {
     $('.retry_permission_id_state'),
     $('.waiting_state'),
     $('.scan_manual_id_photo_state'),
-    $('.promo_code_not_found_state')
+    $('.promo_code_not_found_state'),
+    $('.custom_permission_screen2_choiceList_state')
   ]
 
   states.forEach(it => {
