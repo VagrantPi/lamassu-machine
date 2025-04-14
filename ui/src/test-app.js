@@ -218,7 +218,7 @@ function setupFakes () {
     '.', '</span><span class="decimal">479</span>'
   ].join('')
 
-  let address = 'wjy98nu928ud1o82dbj2u9i81wqjjyu98iwn'
+  let address = 'wjy98nu928ud1o82dbj2u9i81wqjjyu98iwwjy98nu928ud1o82dbj2u9i81wqjjyu98iwnn'
   $('.deposit_state .send-notice .crypto-address').text(formatAddress(address))
   $('.fiat_receipt_state .sent-coins .crypto-address').text(formatAddress(address))
   $('.fiat_complete_state .sent-coins .crypto-address').text(formatAddress(address))

@@ -1244,7 +1244,7 @@ function setTermsScreen(data) {
   startPage(data.text, data.acceptDisabled);
   $screen.find('.js-terms-cancel-button').html(data.cancel);
   $screen.find('.js-terms-accept-button').html(data.accept);
-  setTermsConditionsTimeout();
+  resetTermsConditionsTimeout();
   setAcceptButtonDisabled($screen, data);
   setTermsConditionsAcceptanceDelay($screen, data);
 }
@@ -1267,6 +1267,7 @@ function setTermsConditionsTimeout() {
 }
 
 function setTermsConditionsAcceptanceDelay(screen, data) {
+  clearTermsConditionsAcceptanceDelay();
   var acceptButton = screen.find('.js-terms-accept-button');
   acceptButton.css({ 'min-width': 0 });
 
@@ -1433,8 +1434,10 @@ function setChooseCoinColors() {
 
   if (isTwoWay) {
     $('.choose_coin_state .change-language').removeClass('cash-in-color').addClass('cash-out-color');
+    $('.choose_coin_state .rates-section').removeClass('cash-in-color').addClass('cash-out-color');
   } else {
     $('.choose_coin_state .change-language').removeClass('cash-out-color').addClass('cash-in-color');
+    $('.choose_coin_state .rates-section').removeClass('cash-out-color').addClass('cash-in-color');
   }
 }
 
