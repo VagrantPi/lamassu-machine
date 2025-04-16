@@ -8,7 +8,7 @@ function emit (subsystem, action) {
   return () => actionEmitter.emit(subsystem, {action})
 }
 
-ledManager.run(machine)
+Promise.resolve(ledManager.run(machine))
   .then(emit('brain', 'billValidatorPending'))
   .then(() => delay(3000))
   .then(emit('brain', 'billValidatorAccepting'))
