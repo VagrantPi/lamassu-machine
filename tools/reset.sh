@@ -8,11 +8,10 @@ supervisorctl clear all
 echo "Removing lamassu-machine persistent data..."
 rm -rf /opt/lamassu-machine/data/*
 
-for dir in '/home/machine' '/home/lamassu' '/root'; do
+for dir in '/home/machine' '/home/lamassu' '/home/ubilinux' '/root'; do
   [ -d "${dir}" ] && echo "history -c" > "${dir}/.bash_logout"
 done
 
 echo > /etc/udev/rules.d/70-persistent-net.rules
 
 echo "All done!"
-
