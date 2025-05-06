@@ -53,6 +53,8 @@ var viewportEvents = {}
 var MUSEO = ['ca', 'cs', 'da', 'de', 'en', 'es', 'et', 'fi', 'fr', 'hr',
   'hu', 'it', 'lt', 'nb', 'nl', 'pl', 'pt', 'ro', 'sl', 'sv', 'tr']
 
+var adVideos = []
+
 function connect () {
   console.log(`ws://${HOST}:${PORT}/`)
   websocket = new WebSocket(`ws://${HOST}:${PORT}/`)
@@ -92,6 +94,7 @@ const LN = 'LN'
 const BTC = 'BTC'
 
 function processData (data) {
+  if (data.AdPlaylist) setAdPlaylist(data.AdPplaylist)
   if (data.screenOpts) setScreenOptions(data.screenOpts)
   if (data.localeInfo) setLocaleInfo(data.localeInfo)
   if (data.locale) setLocale(data.locale)
@@ -457,6 +460,26 @@ function blockedCustomer () {
   return setScreen('blocked_customer')
 }
 
+function showPlayerAndStartPlayback() {
+  $('#overlay').css('display', 'block');
+  $('#playerContainer').css('display', 'block');
+  $('#buyButton').css('display', 'block');
+  $('#youtubePlayer').css('display', 'block');
+}
+
+function setAdPlaylist(_playlist) {
+  if (_playlist && _playlist.length == 0) {
+    // no ad playlist
+    $('#overlay').css('display', 'none');
+    $('#playerContainer').css('display', 'none');
+    $('#buyButton').css('display', 'none');
+    $('#youtubePlayer').css('display', 'none');
+  } else {
+    showPlayerAndStartPlayback()
+    adVideos = _playlist
+  }
+}
+
 function chooseCoin (coins, twoWayMode) {
   if (twoWayMode) {
     $('.choose_coin_state').removeClass('choose-coin-cash-in').addClass('choose-coin-two-way')
@@ -464,6 +487,8 @@ function chooseCoin (coins, twoWayMode) {
     $('.choose_coin_state').removeClass('choose-coin-two-way').addClass('choose-coin-cash-in')
   }
 
+  showPlayerAndStartPlayback()
+  
   isTwoWay = twoWayMode
   setChooseCoinColors()
 
@@ -2232,3 +2257,49 @@ function disableLiveview () {
   liveviewDiv.addClass("hide")
   $('#scan-images').removeClass("hide")
 }
+
+$(function () {
+  // 影片清單 - 這裡添加你的 Dropbox 影片清單
+  // const videos = [
+  //   {
+  //     title: "影片 1",
+  //     src: "https://dl.dropboxusercontent.com/scl/fi/gtxnifq402f7xmttl4ivb/video01.mp4?rlkey=74o98x969qvqyig8irbeqpa24&st=o8s2tndc&dl=1"
+  //   },
+  //   {
+  //     title: "影片 2",
+  //     src: "https://dl.dropboxusercontent.com/scl/fi/y8tqle3r82uayf8k5i9di/video02.mp4?rlkey=86r5uwva6bloungs1kt9bwgnf&st=sd4emf17&dl=0"
+  //   }
+  // ];
+  
+  let currentIndex = 0;
+  let videoElement = document.getElementById('myVideo');
+  
+  function loadVideo(index) {
+    videoElement.src = adVideos[index].src;
+    videoElement.load();
+  }
+
+  // auto replay playlist
+  videoElement.addEventListener('ended', function() {
+    currentIndex = (currentIndex + 1) % videos.length;
+    loadVideo(currentIndex);
+  });
+  
+  // playlist video error, autoplay next video
+  videoElement.addEventListener('error', function() {
+    setTimeout(function() {
+      currentIndex = (currentIndex + 1) % videos.length;
+      loadVideo(currentIndex);
+    }, 2000);
+  });
+  
+  // close ad player when overlay mask click
+  $('#overlay, #closeButton').on('click', function() {
+    $('#playerContainer').hide();
+    $('#overlay').hide();
+    $('#closeButton').hide();
+    videoElement.pause();
+  });
+  
+  loadVideo(currentIndex);
+});

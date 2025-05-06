@@ -23,6 +23,20 @@
   </header>
 
   <main class="nm-margin-bottom">
+    <!-- touch mask -->
+    <div class="overlay" id="overlay"></div>
+    <!-- ad player -->
+    <div class="player-container" id="playerContainer">
+      <div class="video-wrapper">
+          <div id="video-player">
+              <video id="myVideo" autoplay muted playsinline>
+              </video>
+          </div>
+      </div>
+    </div>
+    <!-- close player button -->
+    <button class="close-button" id="closeButton"><span class="cash-in"></span></button>
+    <!-- cash-in button -->
     <div class="cash-in-box-wrapper cash-in-color auto-margin">
       <section id="cash-in-box" class="crypto-button-box cash-in-box circle-button h3 sapphire">
         <div class="inner-circle-button">
@@ -31,6 +45,7 @@
         </div>
       </section>
     </div>
+    <!-- cash-out button -->
     <div class="cash-out-box-wrapper cash-out-color auto-margin">
       <section id="cash-out-box" class="crypto-button-box cash-out-box circle-button h3 purple-grey">
         <div class="inner-circle-button">
